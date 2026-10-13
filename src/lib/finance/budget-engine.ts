@@ -1,4 +1,5 @@
 export interface CategoryBudget {
+  id?: string;
   category: string;
   limit: number;
   spent: number;

@@ -73,26 +73,29 @@ export async function POST(request: Request) {
       }
     }
 
-    // 3. Save Budgets from Expenses
-    const allExpenses = [
-      ...fixedExpenses.map((e: { name: string; amount: number; category?: string }) => ({
-        category: e.category || e.name || "Housing",
-        limit: parseFloat(e.amount as unknown as string) || 0,
-        type: "Fixed",
-      })),
-      ...flexibleExpenses.map((e: { category?: string; name: string; amount: number }) => ({
-        category: e.category || e.name || "Food",
-        limit: parseFloat(e.amount as unknown as string) || 0,
-        type: "Flexible",
-      })),
-    ];
+    // 3. Save Budgets from Expenses (aggregate by category name to ensure uniqueness)
+    const categoryTotals = new Map<string, { limit: number; type: string }>();
 
-    for (const exp of allExpenses) {
+    fixedExpenses.forEach((e: { name: string; amount: number; category?: string }) => {
+      const cat = (e.name && e.name.trim()) || e.category || "Fixed Expense";
+      const amt = parseFloat(e.amount as unknown as string) || 0;
+      const current = categoryTotals.get(cat) || { limit: 0, type: "Fixed" };
+      categoryTotals.set(cat, { limit: current.limit + amt, type: "Fixed" });
+    });
+
+    flexibleExpenses.forEach((e: { name: string; amount: number; category?: string }) => {
+      const cat = (e.name && e.name.trim()) || e.category || "Flexible Expense";
+      const amt = parseFloat(e.amount as unknown as string) || 0;
+      const current = categoryTotals.get(cat) || { limit: 0, type: "Flexible" };
+      categoryTotals.set(cat, { limit: current.limit + amt, type: "Flexible" });
+    });
+
+    for (const [cat, item] of categoryTotals.entries()) {
       await prisma.budget.create({
         data: {
           userId,
-          category: exp.category,
-          limit: exp.limit,
+          category: cat,
+          limit: item.limit,
           month: new Date().getMonth() + 1,
           year: new Date().getFullYear(),
         },

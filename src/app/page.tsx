@@ -124,20 +124,28 @@ export default function Home() {
       }))
     );
 
-    setBudgets(
-      (data.budgets || []).map((b) => {
-        const spent = (data.transactions || [])
-          .filter((tx) => tx.category === b.category && tx.type === "Expense")
-          .reduce((sum, tx) => sum + tx.amount, 0);
+    const budgetMap = new Map<string, { id: string; category: string; limit: number; spent: number; type: "Fixed" | "Flexible" }>();
+    (data.budgets || []).forEach((b, idx) => {
+      const cat = b.category || "General";
+      const spent = (data.transactions || [])
+        .filter((tx) => tx.category === cat && tx.type === "Expense")
+        .reduce((sum, tx) => sum + tx.amount, 0);
 
-        return {
-          category: b.category,
+      if (budgetMap.has(cat)) {
+        const item = budgetMap.get(cat)!;
+        item.limit += b.limit;
+      } else {
+        budgetMap.set(cat, {
+          id: b.id || `${cat}-${idx}`,
+          category: cat,
           limit: b.limit,
           spent,
-          type: b.category === "Housing" || b.category === "Utilities" ? "Fixed" : "Flexible",
-        };
-      })
-    );
+          type: cat === "Housing" || cat === "Utilities" ? "Fixed" : "Flexible",
+        });
+      }
+    });
+
+    setBudgets(Array.from(budgetMap.values()));
 
     setBills(
       (data.bills || []).map((bill) => ({
@@ -587,11 +595,11 @@ export default function Home() {
                         <p className="text-xs text-slate-400 py-4">No budget records found in MongoDB.</p>
                       ) : (
                         <div className="space-y-4">
-                          {budgets.slice(0, 4).map((b) => {
+                          {budgets.slice(0, 4).map((b, idx) => {
                             const pct = Math.min(100, Math.round((b.spent / b.limit) * 100));
                             const isHigh = pct >= 90;
                             return (
-                              <div key={b.category}>
+                              <div key={b.id || `${b.category}-${idx}`}>
                                 <div className="mb-1.5 flex justify-between text-xs">
                                   <span className="font-semibold text-slate-700">{b.category}</span>
                                   <span className="font-bold text-slate-900">
@@ -752,10 +760,10 @@ export default function Home() {
                     <h2 className="text-xl font-bold text-slate-900">Smart Budgeting</h2>
                     <p className="text-xs text-slate-500">Fixed costs are strictly protected; flexible categories can be tuned by the agent</p>
                     <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                      {budgets.map((b) => {
+                      {budgets.map((b, idx) => {
                         const pct = Math.min(100, Math.round((b.spent / b.limit) * 100));
                         return (
-                          <div key={b.category} className="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
+                          <div key={b.id || `${b.category}-${idx}`} className="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
                             <div className="flex items-center justify-between">
                               <span className="text-xs font-bold text-slate-800">{b.category}</span>
                               <span className={`rounded-md px-2 py-0.5 text-[10px] font-bold ${b.type === "Fixed" ? "bg-slate-200 text-slate-700" : "bg-blue-100 text-[#155eef]"}`}>
