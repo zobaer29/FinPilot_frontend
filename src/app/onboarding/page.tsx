@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 interface IncomeFormItem {
@@ -43,10 +43,24 @@ interface GoalFormItem {
   priority: string;
 }
 
+const STEPS = [
+  { id: 1, label: "Overview", icon: "⚙" },
+  { id: 2, label: "Incomes", icon: "💰" },
+  { id: 3, label: "Fixed Costs", icon: "⌂" },
+  { id: 4, label: "Flexible Costs", icon: "🛒" },
+  { id: 5, label: "Savings & Debt", icon: "🏦" },
+  { id: 6, label: "Bills", icon: "⚡" },
+  { id: 7, label: "Goals", icon: "🎯" },
+];
+
 export default function OnboardingPage() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
+  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [isExistingProfile, setIsExistingProfile] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+
   const [reportData, setReportData] = useState<{
     cashFlow: {
       totalIncome: number;
@@ -95,7 +109,7 @@ export default function OnboardingPage() {
   const [currentSavings, setCurrentSavings] = useState(0);
   const [emergencyFund, setEmergencyFund] = useState(0);
   const [hasNoDebt, setHasNoDebt] = useState(true);
-  const [debts] = useState<DebtFormItem[]>([]);
+  const [debts, setDebts] = useState<DebtFormItem[]>([]);
 
   // Step 6: Bills
   const [bills, setBills] = useState<BillFormItem[]>([]);
@@ -105,13 +119,76 @@ export default function OnboardingPage() {
     { name: "", targetAmount: 0, currentAmount: 0, deadline: "", priority: "HIGH" },
   ]);
 
+  // Preload existing financial profile if already saved in database
+  useEffect(() => {
+    let isMounted = true;
+    fetch("/api/finance/onboarding")
+      .then((res) => {
+        if (res.status === 401) {
+          router.push("/login");
+          return null;
+        }
+        return res.ok ? res.json() : null;
+      })
+      .then((data) => {
+        if (!isMounted || !data) return;
+
+        if (data.hasExistingData) {
+          setIsExistingProfile(true);
+          if (data.currency) setCurrency(data.currency);
+          if (data.employmentType) setEmploymentType(data.employmentType);
+
+          if (data.incomes && data.incomes.length > 0) {
+            setIncomes(data.incomes);
+          }
+
+          if (data.fixedExpenses && data.fixedExpenses.length > 0) {
+            setFixedExpenses(data.fixedExpenses);
+          }
+
+          if (data.flexibleExpenses && data.flexibleExpenses.length > 0) {
+            setFlexibleExpenses(data.flexibleExpenses);
+          }
+
+          if (data.savings) {
+            setCurrentSavings(data.savings.currentSavings || 0);
+            setEmergencyFund(data.savings.emergencyFund || 0);
+          }
+
+          if (data.debts && data.debts.length > 0) {
+            setDebts(data.debts);
+            setHasNoDebt(false);
+          } else {
+            setHasNoDebt(true);
+          }
+
+          if (data.bills && data.bills.length > 0) {
+            setBills(data.bills);
+          }
+
+          if (data.goals && data.goals.length > 0) {
+            setGoals(data.goals);
+          }
+        }
+      })
+      .catch((err) => console.error("Failed to preload onboarding profile:", err))
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [router]);
+
   const handleNext = () => setCurrentStep((prev) => Math.min(prev + 1, 7));
   const handlePrev = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
 
-  // Submit and analyze
+  // Submit and analyze / update profile
   const handleAnalyzeFinances = async () => {
     try {
       setSubmitting(true);
+      setStatusMessage(null);
       const payload = {
         currency,
         employmentType,
@@ -135,18 +212,31 @@ export default function OnboardingPage() {
 
       const data = await res.json();
       if (res.ok && data.report) {
+        setIsExistingProfile(true);
         setReportData(data.report);
       } else {
         router.push("/dashboard");
       }
     } catch (err) {
       console.error("Onboarding error:", err);
+      setStatusMessage("Failed to save changes. Please try again.");
     } finally {
       setSubmitting(false);
     }
   };
 
-  // If Personalized Report is ready (Section 9)
+  if (loading) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#f5f7fb]">
+        <div className="text-center">
+          <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-2 border-[#155eef] border-t-transparent" />
+          <p className="text-xs font-semibold text-slate-500">Loading your financial profile...</p>
+        </div>
+      </main>
+    );
+  }
+
+  // If Personalized Report is ready
   if (reportData) {
     const cf = reportData.cashFlow;
     const hs = reportData.healthScore;
@@ -156,12 +246,14 @@ export default function OnboardingPage() {
       <main className="min-h-screen bg-[#f5f7fb] px-4 py-10 text-slate-900">
         <div className="mx-auto max-w-2xl rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
           <div className="text-center">
-            <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-[#155eef]">
-              ✦ Financial Analysis Complete
+            <span className="rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-xs font-bold text-emerald-700">
+              ✦ Financial Profile Updated & Analyzed
             </span>
-            <h1 className="mt-3 text-2xl font-extrabold text-slate-900">Your Financial Profile is Ready</h1>
+            <h1 className="mt-3 text-2xl font-extrabold text-slate-900">
+              {isExistingProfile ? "Your Profile Has Been Updated" : "Your Financial Profile is Ready"}
+            </h1>
             <p className="mt-1 text-xs text-slate-500">
-              Deterministic calculations based on your income, expenses, and goals.
+              Deterministic calculations recalculated live based on your latest income, expenses, and goals.
             </p>
           </div>
 
@@ -218,12 +310,20 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          <button
-            onClick={() => router.push("/dashboard")}
-            className="mt-8 w-full rounded-xl bg-[#155eef] py-3 text-xs font-bold text-white shadow-xs hover:bg-blue-700 transition"
-          >
-            Go to Dashboard →
-          </button>
+          <div className="mt-8 flex items-center justify-between gap-3">
+            <button
+              onClick={() => setReportData(null)}
+              className="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition shadow-xs"
+            >
+              ✎ Edit Form Again
+            </button>
+            <button
+              onClick={() => router.push("/dashboard")}
+              className="rounded-xl bg-[#155eef] px-6 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-blue-700 transition"
+            >
+              Go to Dashboard →
+            </button>
+          </div>
         </div>
       </main>
     );
@@ -232,26 +332,58 @@ export default function OnboardingPage() {
   return (
     <main className="min-h-screen bg-[#f5f7fb] px-4 py-10 text-slate-900">
       <div className="mx-auto max-w-2xl rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-        {/* Progress Header */}
+        {/* Top Header with Back Button */}
         <div className="mb-6 flex items-center justify-between border-b border-slate-100 pb-4">
           <div>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#155eef]">
-              Step {currentStep} of 7
-            </span>
-            <h1 className="text-xl font-extrabold text-slate-900">
-              {currentStep === 1 && "Personal Financial Overview"}
-              {currentStep === 2 && "Income Sources"}
-              {currentStep === 3 && "Fixed Expenses"}
-              {currentStep === 4 && "Flexible Expenses"}
-              {currentStep === 5 && "Savings & Debt"}
-              {currentStep === 6 && "Recurring Bills"}
-              {currentStep === 7 && "Financial Goals"}
-            </h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-extrabold text-slate-900">
+                {isExistingProfile ? "Financial Profile & Settings" : "Financial Onboarding"}
+              </h1>
+              {isExistingProfile && (
+                <span className="rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
+                  ● Existing Profile Loaded
+                </span>
+              )}
+            </div>
+            <p className="mt-1 text-xs text-slate-500">
+              {isExistingProfile
+                ? "You can edit any saved data, add new sources, or adjust budgets at any time."
+                : "Set up your income, expenses, and goals to enable autonomous agent intelligence."}
+            </p>
           </div>
-          <div className="text-xs font-bold text-slate-400">
-            {Math.round((currentStep / 7) * 100)}%
-          </div>
+          <button
+            type="button"
+            onClick={() => router.push("/dashboard")}
+            className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 transition shadow-xs"
+          >
+            ← Dashboard
+          </button>
         </div>
+
+        {/* Step Navigation Pills (Allows direct jumping to any section to edit/add) */}
+        <div className="mb-6 flex flex-wrap gap-1.5 border-b border-slate-100 pb-4">
+          {STEPS.map((s) => (
+            <button
+              key={s.id}
+              type="button"
+              onClick={() => setCurrentStep(s.id)}
+              className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition ${
+                currentStep === s.id
+                  ? "bg-[#155eef] text-white shadow-xs"
+                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              }`}
+            >
+              <span>{s.icon}</span>
+              <span>{s.label}</span>
+            </button>
+          ))}
+        </div>
+
+        {statusMessage && (
+          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-semibold text-red-700">
+            ⚠ {statusMessage}
+          </div>
+        )}
 
         {/* Step 1: Overview */}
         {currentStep === 1 && (
@@ -288,7 +420,7 @@ export default function OnboardingPage() {
         {/* Step 2: Income Sources */}
         {currentStep === 2 && (
           <div className="space-y-4 text-xs">
-            <p className="text-slate-500">Add your regular and freelance income sources:</p>
+            <p className="text-slate-500">Edit existing sources or add new income streams:</p>
             {incomes.map((inc, i) => (
               <div key={i} className="rounded-xl border border-slate-200 bg-slate-50/50 p-3.5 space-y-2">
                 <div className="flex items-center justify-between">
@@ -361,7 +493,7 @@ export default function OnboardingPage() {
             ))}
             <button
               onClick={() => setIncomes([...incomes, { name: "", type: "Salary", amount: 0, frequency: "Monthly", isStable: true, history: "" }])}
-              className="text-xs font-bold text-[#155eef]"
+              className="text-xs font-bold text-[#155eef] hover:underline"
             >
               + Add Another Income Source
             </button>
@@ -381,6 +513,7 @@ export default function OnboardingPage() {
                   onChange={(e) => {
                     const next = [...fixedExpenses];
                     next[i].name = e.target.value;
+                    next[i].category = e.target.value;
                     setFixedExpenses(next);
                   }}
                   className="flex-1 rounded-lg border border-slate-200 p-2"
@@ -409,7 +542,7 @@ export default function OnboardingPage() {
             ))}
             <button
               onClick={() => setFixedExpenses([...fixedExpenses, { name: "", category: "Housing", amount: 0 }])}
-              className="text-xs font-bold text-[#155eef]"
+              className="text-xs font-bold text-[#155eef] hover:underline"
             >
               + Add Fixed Expense
             </button>
@@ -442,6 +575,7 @@ export default function OnboardingPage() {
                     onChange={(e) => {
                       const next = [...flexibleExpenses];
                       next[i].name = e.target.value;
+                      next[i].category = e.target.value;
                       setFlexibleExpenses(next);
                     }}
                     className="flex-1 rounded-lg border border-slate-200 bg-white p-2"
@@ -476,7 +610,7 @@ export default function OnboardingPage() {
             ))}
             <button
               onClick={() => setFlexibleExpenses([...flexibleExpenses, { name: "", category: "Flexible", amount: 0, minAllowed: 0 }])}
-              className="text-xs font-bold text-[#155eef]"
+              className="text-xs font-bold text-[#155eef] hover:underline"
             >
               + Add Flexible Expense
             </button>
@@ -519,6 +653,81 @@ export default function OnboardingPage() {
                 <span>I currently have no debt</span>
               </label>
             </div>
+
+            {!hasNoDebt && (
+              <div className="space-y-3 pt-2">
+                <p className="text-slate-500 font-semibold">Active Loans & Debt Obligations:</p>
+                {debts.map((d, i) => (
+                  <div key={i} className="rounded-xl border border-slate-200 bg-slate-50/50 p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-slate-500">Debt #{i + 1}</span>
+                      <button
+                        type="button"
+                        onClick={() => setDebts(debts.filter((_, idx) => idx !== i))}
+                        className="text-[11px] font-bold text-red-500 hover:text-red-700"
+                      >
+                        ✕ Remove
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        type="text"
+                        value={d.name}
+                        onChange={(e) => {
+                          const next = [...debts];
+                          next[i].name = e.target.value;
+                          setDebts(next);
+                        }}
+                        placeholder="Debt Name (e.g. Student Loan, Credit Card)"
+                        className="rounded-lg border border-slate-200 bg-white p-2"
+                      />
+                      <input
+                        type="number"
+                        value={d.outstandingAmount || ""}
+                        onChange={(e) => {
+                          const next = [...debts];
+                          next[i].outstandingAmount = parseFloat(e.target.value) || 0;
+                          setDebts(next);
+                        }}
+                        placeholder="Outstanding Balance (৳)"
+                        className="rounded-lg border border-slate-200 bg-white p-2"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        type="number"
+                        value={d.monthlyPayment || ""}
+                        onChange={(e) => {
+                          const next = [...debts];
+                          next[i].monthlyPayment = parseFloat(e.target.value) || 0;
+                          setDebts(next);
+                        }}
+                        placeholder="Monthly Payment (৳)"
+                        className="rounded-lg border border-slate-200 bg-white p-2"
+                      />
+                      <input
+                        type="number"
+                        value={d.interestRate || ""}
+                        onChange={(e) => {
+                          const next = [...debts];
+                          next[i].interestRate = parseFloat(e.target.value) || 0;
+                          setDebts(next);
+                        }}
+                        placeholder="Interest Rate (%)"
+                        className="rounded-lg border border-slate-200 bg-white p-2"
+                      />
+                    </div>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setDebts([...debts, { name: "", outstandingAmount: 0, monthlyPayment: 0, interestRate: 0 }])}
+                  className="text-xs font-bold text-[#155eef] hover:underline"
+                >
+                  + Add Debt Obligation
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -563,7 +772,7 @@ export default function OnboardingPage() {
             <div>
               <button
                 onClick={() => setBills([...bills, { name: "", amount: 0, dueDate: "2026-10-25", category: "Utilities", isRecurring: true }])}
-                className="text-xs font-bold text-[#155eef]"
+                className="text-xs font-bold text-[#155eef] hover:underline"
               >
                 + Add Recurring Bill
               </button>
@@ -618,7 +827,7 @@ export default function OnboardingPage() {
             <div>
               <button
                 onClick={() => setGoals([...goals, { name: "", targetAmount: 0, currentAmount: 0, deadline: "", priority: "HIGH" }])}
-                className="text-xs font-bold text-[#155eef]"
+                className="text-xs font-bold text-[#155eef] hover:underline"
               >
                 + Add Another Goal
               </button>
@@ -650,7 +859,11 @@ export default function OnboardingPage() {
               disabled={submitting}
               className="rounded-xl bg-emerald-600 px-6 py-2.5 text-xs font-bold text-white hover:bg-emerald-700 shadow-xs disabled:opacity-50"
             >
-              {submitting ? "Analyzing..." : "Analyze My Finances ✦"}
+              {submitting
+                ? "Saving & Calculating..."
+                : isExistingProfile
+                ? "Save Changes & Recalculate ✦"
+                : "Analyze My Finances ✦"}
             </button>
           )}
         </div>
