@@ -144,14 +144,16 @@ export async function POST(request: Request) {
       });
     }
 
-    // 7. Initialize Sandbox Accounts
-    const availBal = Math.max(0, (savings.currentSavings || 0) - (savings.emergencyFund || 0));
+    // 7. Initialize Sandbox Accounts strictly from user input
+    const userSavings = parseFloat(savings.currentSavings) || 0;
+    const userEmergency = parseFloat(savings.emergencyFund) || 0;
+    const availBal = Math.max(0, userSavings - userEmergency);
     await prisma.sandboxAccount.createMany({
       data: [
-        { userId, name: "Available Balance", balance: availBal || 20000, type: "CHECKING" },
-        { userId, name: "General Savings", balance: savings.currentSavings || 30000, type: "SAVINGS" },
-        { userId, name: "Emergency Fund", balance: savings.emergencyFund || 15000, type: "EMERGENCY" },
-        { userId, name: "Goal Fund", balance: 5000, type: "GOAL" },
+        { userId, name: "Available Balance", balance: availBal, type: "CHECKING" },
+        { userId, name: "General Savings", balance: userSavings, type: "SAVINGS" },
+        { userId, name: "Emergency Fund", balance: userEmergency, type: "EMERGENCY" },
+        { userId, name: "Goal Fund", balance: 0, type: "GOAL" },
       ],
     });
 

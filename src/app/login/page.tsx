@@ -6,8 +6,8 @@ import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("alex@finpilot.ai");
-  const [password, setPassword] = useState("password123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -46,7 +46,7 @@ export default function LoginPage() {
           </div>
           <h1 className="text-2xl font-extrabold tracking-tight">Log in to FinPilot AI</h1>
           <p className="mt-1 text-xs text-slate-500">
-            Welcome back to your personalized financial assistant
+            Enter your credentials to access your personal finance workspace
           </p>
         </div>
 
@@ -64,7 +64,7 @@ export default function LoginPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="alex@finpilot.ai"
+              placeholder="you@example.com"
               className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs font-medium focus:border-[#155eef] focus:outline-none focus:ring-2 focus:ring-blue-100"
             />
           </div>
@@ -88,14 +88,9 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full rounded-xl bg-[#155eef] py-3 text-xs font-bold text-white shadow-xs hover:bg-blue-700 transition disabled:opacity-50"
           >
-            {loading ? "Signing In..." : "Sign In to Workspace"}
+            {loading ? "Signing In..." : "Sign In"}
           </button>
         </form>
-
-        <div className="mt-5 rounded-xl bg-blue-50/70 p-3 text-center text-xs text-slate-600">
-          <p className="font-semibold text-[#155eef]">Demo credentials preloaded</p>
-          <p className="text-[11px] text-slate-500 mt-0.5">alex@finpilot.ai / password123</p>
-        </div>
 
         <p className="mt-6 text-center text-xs text-slate-500">
           Don&apos;t have an account yet?{" "}

@@ -78,42 +78,31 @@ export default function OnboardingPage() {
 
   // Step 2: Incomes
   const [incomes, setIncomes] = useState<IncomeFormItem[]>([
-    { name: "Job Salary", type: "Salary", amount: 40000, frequency: "Monthly", isStable: true, history: "" },
-    { name: "Freelancing Clients", type: "Freelancing", amount: 20000, frequency: "Monthly", isStable: false, history: "42000, 55000, 31000, 60000" },
+    { name: "", type: "Salary", amount: 0, frequency: "Monthly", isStable: true, history: "" },
   ]);
 
   // Step 3: Fixed Expenses
   const [fixedExpenses, setFixedExpenses] = useState<ExpenseFormItem[]>([
-    { name: "House Rent", category: "Housing", amount: 15000 },
-    { name: "Broadband Internet", category: "Utilities", amount: 1200 },
-    { name: "DESCO Electricity", category: "Utilities", amount: 2400 },
-    { name: "Health Insurance", category: "Insurance", amount: 2000 },
+    { name: "", category: "Housing", amount: 0 },
   ]);
 
   // Step 4: Flexible Expenses
   const [flexibleExpenses, setFlexibleExpenses] = useState<ExpenseFormItem[]>([
-    { name: "Food & Groceries", category: "Food", amount: 10000, minAllowed: 8500 },
-    { name: "Pocket Money & Commute", category: "Pocket Money", amount: 6000, minAllowed: 4500 },
-    { name: "Shopping & Entertainment", category: "Shopping", amount: 5000, minAllowed: 4000 },
+    { name: "", category: "Flexible", amount: 0, minAllowed: 0 },
   ]);
 
   // Step 5: Savings & Debt
-  const [currentSavings, setCurrentSavings] = useState(60000);
-  const [emergencyFund, setEmergencyFund] = useState(25000);
+  const [currentSavings, setCurrentSavings] = useState(0);
+  const [emergencyFund, setEmergencyFund] = useState(0);
   const [hasNoDebt, setHasNoDebt] = useState(true);
   const [debts] = useState<DebtFormItem[]>([]);
 
   // Step 6: Bills
-  const [bills, setBills] = useState<BillFormItem[]>([
-    { name: "DESCO Electricity", amount: 2400, dueDate: "2026-10-18", category: "Utilities", isRecurring: true },
-    { name: "Link3 Internet", amount: 1200, dueDate: "2026-10-20", category: "Utilities", isRecurring: true },
-    { name: "Netflix Subscription", amount: 1250, dueDate: "2026-10-25", category: "Entertainment", isRecurring: true },
-  ]);
+  const [bills, setBills] = useState<BillFormItem[]>([]);
 
   // Step 7: Goals
   const [goals, setGoals] = useState<GoalFormItem[]>([
-    { name: "Laptop", targetAmount: 100000, currentAmount: 20000, deadline: "2027-04-13", priority: "HIGH" },
-    { name: "Emergency Fund", targetAmount: 60000, currentAmount: 25000, deadline: "2027-06-13", priority: "HIGH" },
+    { name: "", targetAmount: 0, currentAmount: 0, deadline: "", priority: "HIGH" },
   ]);
 
   const handleNext = () => setCurrentStep((prev) => Math.min(prev + 1, 7));
@@ -302,6 +291,18 @@ export default function OnboardingPage() {
             <p className="text-slate-500">Add your regular and freelance income sources:</p>
             {incomes.map((inc, i) => (
               <div key={i} className="rounded-xl border border-slate-200 bg-slate-50/50 p-3.5 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-slate-500">Source #{i + 1}</span>
+                  {incomes.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => setIncomes(incomes.filter((_, idx) => idx !== i))}
+                      className="text-[11px] font-bold text-red-500 hover:text-red-700"
+                    >
+                      ✕ Remove
+                    </button>
+                  )}
+                </div>
                 <div className="grid grid-cols-2 gap-2">
                   <input
                     type="text"
@@ -311,12 +312,12 @@ export default function OnboardingPage() {
                       next[i].name = e.target.value;
                       setIncomes(next);
                     }}
-                    placeholder="Source Name"
+                    placeholder="Source Name (e.g. Salary, Client)"
                     className="rounded-lg border border-slate-200 bg-white p-2"
                   />
                   <input
                     type="number"
-                    value={inc.amount}
+                    value={inc.amount || ""}
                     onChange={(e) => {
                       const next = [...incomes];
                       next[i].amount = parseFloat(e.target.value) || 0;
@@ -359,7 +360,7 @@ export default function OnboardingPage() {
               </div>
             ))}
             <button
-              onClick={() => setIncomes([...incomes, { name: "New Source", type: "Other", amount: 10000, frequency: "Monthly", isStable: true, history: "" }])}
+              onClick={() => setIncomes([...incomes, { name: "", type: "Salary", amount: 0, frequency: "Monthly", isStable: true, history: "" }])}
               className="text-xs font-bold text-[#155eef]"
             >
               + Add Another Income Source
@@ -372,10 +373,11 @@ export default function OnboardingPage() {
           <div className="space-y-4 text-xs">
             <p className="text-slate-500">Essential expenses that cannot be easily cut:</p>
             {fixedExpenses.map((exp, i) => (
-              <div key={i} className="flex gap-2">
+              <div key={i} className="flex items-center gap-2">
                 <input
                   type="text"
                   value={exp.name}
+                  placeholder="Expense Name (e.g. Rent, Internet)"
                   onChange={(e) => {
                     const next = [...fixedExpenses];
                     next[i].name = e.target.value;
@@ -385,7 +387,8 @@ export default function OnboardingPage() {
                 />
                 <input
                   type="number"
-                  value={exp.amount}
+                  value={exp.amount || ""}
+                  placeholder="Monthly Amount"
                   onChange={(e) => {
                     const next = [...fixedExpenses];
                     next[i].amount = parseFloat(e.target.value) || 0;
@@ -393,8 +396,23 @@ export default function OnboardingPage() {
                   }}
                   className="w-32 rounded-lg border border-slate-200 p-2"
                 />
+                {fixedExpenses.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => setFixedExpenses(fixedExpenses.filter((_, idx) => idx !== i))}
+                    className="px-2 py-1 text-xs font-bold text-red-500 hover:text-red-700"
+                  >
+                    ✕
+                  </button>
+                )}
               </div>
             ))}
+            <button
+              onClick={() => setFixedExpenses([...fixedExpenses, { name: "", category: "Housing", amount: 0 }])}
+              className="text-xs font-bold text-[#155eef]"
+            >
+              + Add Fixed Expense
+            </button>
           </div>
         )}
 
@@ -404,10 +422,23 @@ export default function OnboardingPage() {
             <p className="text-slate-500">Expenses that can be adjusted to achieve your goals:</p>
             {flexibleExpenses.map((exp, i) => (
               <div key={i} className="rounded-xl border border-slate-200 bg-slate-50/50 p-3 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-slate-500">Item #{i + 1}</span>
+                  {flexibleExpenses.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => setFlexibleExpenses(flexibleExpenses.filter((_, idx) => idx !== i))}
+                      className="text-[11px] font-bold text-red-500 hover:text-red-700"
+                    >
+                      ✕ Remove
+                    </button>
+                  )}
+                </div>
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={exp.name}
+                    placeholder="Expense Name (e.g. Dining, Outings)"
                     onChange={(e) => {
                       const next = [...flexibleExpenses];
                       next[i].name = e.target.value;
@@ -417,7 +448,8 @@ export default function OnboardingPage() {
                   />
                   <input
                     type="number"
-                    value={exp.amount}
+                    value={exp.amount || ""}
+                    placeholder="Monthly Amount"
                     onChange={(e) => {
                       const next = [...flexibleExpenses];
                       next[i].amount = parseFloat(e.target.value) || 0;
@@ -430,7 +462,8 @@ export default function OnboardingPage() {
                   <span>Minimum protected limit:</span>
                   <input
                     type="number"
-                    value={exp.minAllowed || 0}
+                    value={exp.minAllowed || ""}
+                    placeholder="Min limit"
                     onChange={(e) => {
                       const next = [...flexibleExpenses];
                       next[i].minAllowed = parseFloat(e.target.value) || 0;
@@ -441,6 +474,12 @@ export default function OnboardingPage() {
                 </div>
               </div>
             ))}
+            <button
+              onClick={() => setFlexibleExpenses([...flexibleExpenses, { name: "", category: "Flexible", amount: 0, minAllowed: 0 }])}
+              className="text-xs font-bold text-[#155eef]"
+            >
+              + Add Flexible Expense
+            </button>
           </div>
         )}
 
@@ -452,7 +491,8 @@ export default function OnboardingPage() {
                 <label className="block font-bold text-slate-700">Current Total Savings (৳)</label>
                 <input
                   type="number"
-                  value={currentSavings}
+                  value={currentSavings || ""}
+                  placeholder="0"
                   onChange={(e) => setCurrentSavings(parseFloat(e.target.value) || 0)}
                   className="mt-1 w-full rounded-lg border border-slate-200 p-2"
                 />
@@ -461,7 +501,8 @@ export default function OnboardingPage() {
                 <label className="block font-bold text-slate-700">Emergency Fund (৳)</label>
                 <input
                   type="number"
-                  value={emergencyFund}
+                  value={emergencyFund || ""}
+                  placeholder="0"
                   onChange={(e) => setEmergencyFund(parseFloat(e.target.value) || 0)}
                   className="mt-1 w-full rounded-lg border border-slate-200 p-2"
                 />
@@ -485,11 +526,13 @@ export default function OnboardingPage() {
         {currentStep === 6 && (
           <div className="space-y-4 text-xs">
             <p className="text-slate-500">Recurring utility and subscription bills:</p>
+            {bills.length === 0 && <p className="text-slate-400 italic">No recurring bills added yet.</p>}
             {bills.map((bill, i) => (
-              <div key={i} className="flex gap-2">
+              <div key={i} className="flex items-center gap-2">
                 <input
                   type="text"
                   value={bill.name}
+                  placeholder="Bill Name (e.g. Internet, Electricity)"
                   onChange={(e) => {
                     const next = [...bills];
                     next[i].name = e.target.value;
@@ -499,7 +542,8 @@ export default function OnboardingPage() {
                 />
                 <input
                   type="number"
-                  value={bill.amount}
+                  value={bill.amount || ""}
+                  placeholder="Amount"
                   onChange={(e) => {
                     const next = [...bills];
                     next[i].amount = parseFloat(e.target.value) || 0;
@@ -507,8 +551,23 @@ export default function OnboardingPage() {
                   }}
                   className="w-28 rounded-lg border border-slate-200 p-2"
                 />
+                <button
+                  type="button"
+                  onClick={() => setBills(bills.filter((_, idx) => idx !== i))}
+                  className="px-2 py-1 text-xs font-bold text-red-500 hover:text-red-700"
+                >
+                  ✕
+                </button>
               </div>
             ))}
+            <div>
+              <button
+                onClick={() => setBills([...bills, { name: "", amount: 0, dueDate: "2026-10-25", category: "Utilities", isRecurring: true }])}
+                className="text-xs font-bold text-[#155eef]"
+              >
+                + Add Recurring Bill
+              </button>
+            </div>
           </div>
         )}
 
@@ -518,6 +577,18 @@ export default function OnboardingPage() {
             <p className="text-slate-500">What major purchase or fund are you saving for?</p>
             {goals.map((g, i) => (
               <div key={i} className="rounded-xl border border-slate-200 bg-slate-50/50 p-3.5 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-slate-500">Goal #{i + 1}</span>
+                  {goals.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => setGoals(goals.filter((_, idx) => idx !== i))}
+                      className="text-[11px] font-bold text-red-500 hover:text-red-700"
+                    >
+                      ✕ Remove
+                    </button>
+                  )}
+                </div>
                 <div className="grid grid-cols-2 gap-2">
                   <input
                     type="text"
@@ -532,7 +603,7 @@ export default function OnboardingPage() {
                   />
                   <input
                     type="number"
-                    value={g.targetAmount}
+                    value={g.targetAmount || ""}
                     onChange={(e) => {
                       const next = [...goals];
                       next[i].targetAmount = parseFloat(e.target.value) || 0;
@@ -544,6 +615,14 @@ export default function OnboardingPage() {
                 </div>
               </div>
             ))}
+            <div>
+              <button
+                onClick={() => setGoals([...goals, { name: "", targetAmount: 0, currentAmount: 0, deadline: "", priority: "HIGH" }])}
+                className="text-xs font-bold text-[#155eef]"
+              >
+                + Add Another Goal
+              </button>
+            </div>
           </div>
         )}
 

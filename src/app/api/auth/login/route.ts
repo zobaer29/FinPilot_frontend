@@ -18,12 +18,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
     }
 
-    // If demo user Alex has no password set yet, allow login or check password
-    if (user.password) {
-      const isValid = await verifyPassword(password, user.password);
-      if (!isValid) {
-        return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
-      }
+    if (!user.password) {
+      return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
+    }
+
+    const isValid = await verifyPassword(password, user.password);
+    if (!isValid) {
+      return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
     }
 
     await setSessionUser({

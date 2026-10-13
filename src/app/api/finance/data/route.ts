@@ -5,10 +5,12 @@ import { getSessionUser } from "@/lib/auth";
 export async function GET() {
   try {
     const session = await getSessionUser();
-    const userQuery = session ? { id: session.id } : { email: "alex@finpilot.ai" };
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-    const user = await prisma.user.findFirst({
-      where: userQuery,
+    const user = await prisma.user.findUnique({
+      where: { id: session.id },
       include: {
         incomes: true,
         transactions: { orderBy: { date: "desc" } },
@@ -56,8 +58,10 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const session = await getSessionUser();
-    const userQuery = session ? { id: session.id } : { email: "alex@finpilot.ai" };
-    const user = await prisma.user.findFirst({ where: userQuery });
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const user = await prisma.user.findUnique({ where: { id: session.id } });
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });

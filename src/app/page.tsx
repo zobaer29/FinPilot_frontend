@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import Papa from "papaparse";
 import { calculateCashFlow, ExpenseItem, IncomeItem } from "@/lib/finance/cash-flow";
 import { calculateFinancialHealthScore } from "@/lib/finance/health-score";
@@ -57,6 +58,7 @@ const formatMoney = (amount: number) =>
   new Intl.NumberFormat("en-BD", { style: "currency", currency: "BDT", maximumFractionDigits: 0 }).format(amount);
 
 export default function Home() {
+  const router = useRouter();
   const [activeNav, setActiveNav] = useState<string>("Dashboard");
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -80,9 +82,11 @@ export default function Home() {
 
   // CSV Import State
   const [csvStatus, setCsvStatus] = useState<string | null>(null);
-  const [isSeeding, setIsSeeding] = useState(false);
+  const [userName, setUserName] = useState<string>("");
+  const [userEmail, setUserEmail] = useState<string>("");
 
   const applyFinancePayload = useCallback((data: {
+    user?: { id: string; name: string; email: string };
     incomes?: { id: string; name: string; amount: number; frequency: string; isStable: boolean }[];
     transactions?: { id: string; description: string; category: string; amount: number; type: string; date: string; predictedCategory?: string; predictionConfidence?: number }[];
     budgets?: { id: string; category: string; limit: number }[];
@@ -92,6 +96,11 @@ export default function Home() {
     auditLogs?: { id: string; eventType: string; description: string; createdAt: string }[];
     sandboxTransactions?: { id: string; amount: number; status: string; reference: string; createdAt: string }[];
   }) => {
+    if (data.user) {
+      setUserName(data.user.name || "User");
+      setUserEmail(data.user.email || "");
+    }
+
     setIncomes(
       (data.incomes || []).map((inc) => ({
         id: inc.id,
@@ -193,7 +202,13 @@ export default function Home() {
   useEffect(() => {
     let isMounted = true;
     fetch("/api/finance/data")
-      .then((res) => (res.ok ? res.json() : null))
+      .then((res) => {
+        if (res.status === 401) {
+          router.push("/login");
+          return null;
+        }
+        return res.ok ? res.json() : null;
+      })
       .then((data) => {
         if (!isMounted || !data) return;
         applyFinancePayload(data);
@@ -206,21 +221,13 @@ export default function Home() {
     return () => {
       isMounted = false;
     };
-  }, [applyFinancePayload, reloadKey]);
+  }, [applyFinancePayload, reloadKey, router]);
 
-  // Seed database handler
-  const handleSeedDatabase = async () => {
+  const handleLogout = async () => {
     try {
-      setIsSeeding(true);
-      const res = await fetch("/api/finance/seed", { method: "POST" });
-      if (res.ok) {
-        refreshData();
-        setCsvStatus("Successfully populated database with seed data!");
-      }
-    } catch (err) {
-      console.error("Seeding failed:", err);
+      await fetch("/api/auth/logout", { method: "POST" });
     } finally {
-      setIsSeeding(false);
+      router.push("/login");
     }
   };
 
@@ -440,15 +447,25 @@ export default function Home() {
             </div>
           </nav>
 
-          {/* Seed Database Control */}
+          {/* User Profile & Sign Out */}
           <div className="mt-auto space-y-3">
-            <button
-              onClick={handleSeedDatabase}
-              disabled={isSeeding}
-              className="w-full rounded-xl border border-blue-200 bg-blue-50/70 py-2.5 text-xs font-bold text-[#155eef] hover:bg-blue-100 transition disabled:opacity-50"
-            >
-              {isSeeding ? "Seeding Database..." : "↻ Reset/Seed Database"}
-            </button>
+            <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-xs">
+              <div className="flex items-center gap-2.5">
+                <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#155eef] text-xs font-bold text-white shadow-xs">
+                  {userName ? userName.charAt(0).toUpperCase() : "U"}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-xs font-bold text-slate-900">{userName || "User"}</p>
+                  <p className="truncate text-[11px] text-slate-500">{userEmail || ""}</p>
+                </div>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="mt-3 w-full rounded-xl border border-slate-200 bg-slate-50 py-2 text-xs font-bold text-slate-700 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition"
+              >
+                Sign Out
+              </button>
+            </div>
 
             <div className="rounded-2xl bg-slate-900 p-4 text-white">
               <div className="flex items-center gap-2">
@@ -469,7 +486,9 @@ export default function Home() {
           <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Tuesday, October 13, 2026</p>
-              <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900">Good morning, Alex</h1>
+              <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900">
+                Good morning{userName ? `, ${userName}` : ""}
+              </h1>
               <p className="mt-1 text-sm text-slate-500">Live dynamic financial insights loaded from MongoDB.</p>
             </div>
             <div className="flex items-center gap-3">
@@ -479,8 +498,14 @@ export default function Home() {
               >
                 ✦ Open Problem Box
               </button>
+              <button
+                onClick={handleLogout}
+                className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 shadow-xs transition"
+              >
+                Sign Out
+              </button>
               <div className="grid h-10 w-10 place-items-center rounded-full bg-blue-100 font-bold text-[#155eef]">
-                A
+                {userName ? userName.charAt(0).toUpperCase() : "U"}
               </div>
             </div>
           </header>
@@ -604,10 +629,10 @@ export default function Home() {
                         <div className="rounded-xl border border-dashed border-slate-200 p-8 text-center">
                           <p className="text-xs text-slate-400">No transactions recorded in database.</p>
                           <button
-                            onClick={handleSeedDatabase}
-                            className="mt-3 rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-bold text-[#155eef]"
+                            onClick={() => setActiveNav("Transactions")}
+                            className="mt-3 rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-bold text-[#155eef] hover:bg-blue-100 transition"
                           >
-                            Populate Demo Data
+                            Import CSV or Add Transaction
                           </button>
                         </div>
                       ) : (

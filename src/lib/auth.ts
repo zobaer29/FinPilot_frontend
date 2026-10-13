@@ -1,3 +1,4 @@
+
 import { cookies } from "next/headers";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
@@ -46,19 +47,6 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
     if (!token) {
-      // Fallback to default demo user Alex if no session cookie exists
-      const demoUser = await prisma.user.findFirst({
-        where: { email: "alex@finpilot.ai" },
-      });
-      if (demoUser) {
-        return {
-          id: demoUser.id,
-          email: demoUser.email,
-          name: demoUser.name,
-          onboardingCompleted: demoUser.onboardingCompleted,
-          currency: demoUser.currency,
-        };
-      }
       return null;
     }
 

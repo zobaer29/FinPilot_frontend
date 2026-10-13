@@ -71,7 +71,7 @@ export default function RegisterPage() {
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Alex Smith"
+              placeholder="Enter your full name"
               className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs font-medium focus:border-[#155eef] focus:outline-none focus:ring-2 focus:ring-blue-100"
             />
           </div>
@@ -83,7 +83,7 @@ export default function RegisterPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="alex@finpilot.ai"
+              placeholder="name@example.com"
               className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs font-medium focus:border-[#155eef] focus:outline-none focus:ring-2 focus:ring-blue-100"
             />
           </div>

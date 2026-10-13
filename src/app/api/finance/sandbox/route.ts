@@ -7,10 +7,12 @@ export async function POST(request: Request) {
     const { fromAccountName, toAccountName, amount, budgetAdjustments } = await request.json();
 
     const session = await getSessionUser();
-    const userQuery = session ? { id: session.id } : { email: "alex@finpilot.ai" };
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-    const user = await prisma.user.findFirst({
-      where: userQuery,
+    const user = await prisma.user.findUnique({
+      where: { id: session.id },
       include: { sandboxAccounts: true },
     });
 
