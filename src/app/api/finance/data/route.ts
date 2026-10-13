@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { getSessionUser } from "@/lib/auth";
 
 export async function GET() {
   try {
+    const session = await getSessionUser();
+    const userQuery = session ? { id: session.id } : { email: "alex@finpilot.ai" };
+
     const user = await prisma.user.findFirst({
-      where: { email: "alex@finpilot.ai" },
+      where: userQuery,
       include: {
         incomes: true,
         transactions: { orderBy: { date: "desc" } },
@@ -51,7 +55,9 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const user = await prisma.user.findFirst({ where: { email: "alex@finpilot.ai" } });
+    const session = await getSessionUser();
+    const userQuery = session ? { id: session.id } : { email: "alex@finpilot.ai" };
+    const user = await prisma.user.findFirst({ where: userQuery });
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });

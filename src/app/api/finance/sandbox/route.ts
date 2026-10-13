@@ -1,12 +1,16 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { getSessionUser } from "@/lib/auth";
 
 export async function POST(request: Request) {
   try {
     const { fromAccountName, toAccountName, amount, budgetAdjustments } = await request.json();
 
+    const session = await getSessionUser();
+    const userQuery = session ? { id: session.id } : { email: "alex@finpilot.ai" };
+
     const user = await prisma.user.findFirst({
-      where: { email: "alex@finpilot.ai" },
+      where: userQuery,
       include: { sandboxAccounts: true },
     });
 

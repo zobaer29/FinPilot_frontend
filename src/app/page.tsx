@@ -421,6 +421,23 @@ export default function Home() {
                 {item.name}
               </button>
             ))}
+
+            <div className="pt-2 pb-1 border-t border-slate-100 my-2">
+              <a
+                href="/model-evaluation"
+                className="flex w-full items-center rounded-xl px-3.5 py-2.5 text-left text-xs font-bold text-purple-700 bg-purple-50/70 hover:bg-purple-100 transition"
+              >
+                <span className="mr-2 text-sm">🧪</span>
+                Model Evaluation
+              </a>
+              <a
+                href="/onboarding"
+                className="mt-1 flex w-full items-center rounded-xl px-3.5 py-2 text-left text-xs font-semibold text-slate-600 hover:bg-slate-50 transition"
+              >
+                <span className="mr-2 text-sm">📋</span>
+                Onboarding Flow
+              </a>
+            </div>
           </nav>
 
           {/* Seed Database Control */}
