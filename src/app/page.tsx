@@ -8,6 +8,8 @@ import { calculateFinancialHealthScore } from "@/lib/finance/health-score";
 import { evaluateBudgets, CategoryBudget } from "@/lib/finance/budget-engine";
 import { analyzeGoal, FinancialGoalItem } from "@/lib/finance/goal-engine";
 import { generateGoalRecommendation, RecommendationPlan } from "@/lib/finance/recommendation-engine";
+import DashboardSkeleton from "@/components/DashboardSkeleton";
+import ModelTrainingLoader from "@/components/ModelTrainingLoader";
 
 interface Transaction {
   id: string;
@@ -519,12 +521,7 @@ export default function Home() {
           </header>
 
           {loading ? (
-            <div className="flex min-h-[300px] items-center justify-center">
-              <div className="text-center">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#155eef] border-t-transparent mx-auto" />
-                <p className="mt-3 text-xs font-semibold text-slate-500">Loading live data from MongoDB...</p>
-              </div>
-            </div>
+            <DashboardSkeleton />
           ) : (
             <>
               {/* View: DASHBOARD */}
@@ -568,12 +565,12 @@ export default function Home() {
                         </div>
                         <div className="grid flex-1 grid-cols-2 gap-4 w-full">
                           {healthReport.components.slice(0, 4).map((c) => (
-                            <div key={c.name} className="rounded-xl border border-slate-100 bg-slate-50/50 p-3">
-                              <p className="text-xs text-slate-500">{c.name}</p>
-                              <p className="mt-1 text-base font-bold text-slate-900">
+                            <div key={c.name} className="rounded-xl border border-slate-100 bg-slate-50/70 p-3.5 hover:border-slate-200 transition">
+                              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">{c.name}</p>
+                              <p className="mt-1 text-lg font-black text-slate-900">
                                 {c.score}/{c.maxPoints}
                               </p>
-                              <p className="mt-1 text-[11px] text-slate-400 leading-4 truncate">{c.explanation}</p>
+                              <p className="mt-1 text-xs text-slate-500 leading-relaxed truncate">{c.explanation}</p>
                             </div>
                           ))}
                         </div>
@@ -585,14 +582,14 @@ export default function Home() {
                       <div className="mb-5 flex items-center justify-between">
                         <div>
                           <h2 className="text-lg font-bold text-slate-900">Category Budgets</h2>
-                          <p className="text-xs text-slate-500">{budgetEvaluation.overallUtilization}% of total budget utilized</p>
+                          <p className="text-xs sm:text-sm text-slate-500">{budgetEvaluation.overallUtilization}% of total budget utilized</p>
                         </div>
-                        <button onClick={() => setActiveNav("Budget")} className="text-xs font-bold text-[#155eef] hover:underline">
+                        <button onClick={() => setActiveNav("Budget")} className="text-xs sm:text-sm font-bold text-[#155eef] hover:underline">
                           View all
                         </button>
                       </div>
                       {budgets.length === 0 ? (
-                        <p className="text-xs text-slate-400 py-4">No budget records found in MongoDB.</p>
+                        <p className="text-sm text-slate-400 py-4">No budget records found in MongoDB.</p>
                       ) : (
                         <div className="space-y-4">
                           {budgets.slice(0, 4).map((b, idx) => {
@@ -600,7 +597,7 @@ export default function Home() {
                             const isHigh = pct >= 90;
                             return (
                               <div key={b.id || `${b.category}-${idx}`}>
-                                <div className="mb-1.5 flex justify-between text-xs">
+                                <div className="mb-1.5 flex justify-between text-xs sm:text-sm">
                                   <span className="font-semibold text-slate-700">{b.category}</span>
                                   <span className="font-bold text-slate-900">
                                     {formatMoney(b.spent)} / {formatMoney(b.limit)}
@@ -627,18 +624,18 @@ export default function Home() {
                       <div className="mb-5 flex items-center justify-between">
                         <div>
                           <h2 className="text-lg font-bold text-slate-900">Recent Transactions</h2>
-                          <p className="text-xs text-slate-500">Live records from MongoDB</p>
+                          <p className="text-xs sm:text-sm text-slate-500">Live records from MongoDB</p>
                         </div>
-                        <button onClick={() => setActiveNav("Transactions")} className="text-xs font-bold text-[#155eef] hover:underline">
+                        <button onClick={() => setActiveNav("Transactions")} className="text-xs sm:text-sm font-bold text-[#155eef] hover:underline">
                           See all
                         </button>
                       </div>
                       {transactions.length === 0 ? (
                         <div className="rounded-xl border border-dashed border-slate-200 p-8 text-center">
-                          <p className="text-xs text-slate-400">No transactions recorded in database.</p>
+                          <p className="text-sm text-slate-400">No transactions recorded in database.</p>
                           <button
                             onClick={() => setActiveNav("Transactions")}
-                            className="mt-3 rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-bold text-[#155eef] hover:bg-blue-100 transition"
+                            className="mt-3 rounded-lg bg-blue-50 px-4 py-2 text-xs sm:text-sm font-bold text-[#155eef] hover:bg-blue-100 transition"
                           >
                             Import CSV or Add Transaction
                           </button>
@@ -648,18 +645,18 @@ export default function Home() {
                           {transactions.slice(0, 5).map((t) => (
                             <div key={t.id} className="flex items-center justify-between rounded-xl p-2.5 hover:bg-slate-50 transition">
                               <div className="flex items-center gap-3">
-                                <div className="grid h-9 w-9 place-items-center rounded-xl bg-slate-100 text-sm">
+                                <div className="grid h-10 w-10 place-items-center rounded-xl bg-slate-100 text-base">
                                   {t.category === "Food" ? "🍜" : t.category === "Housing" ? "⌂" : t.category === "Transport" ? "↗" : t.category === "Utilities" ? "⚡" : "◇"}
                                 </div>
                                 <div>
                                   <p className="text-sm font-semibold text-slate-800">{t.description}</p>
                                   <p className="text-xs text-slate-400">
                                     {t.category} · {t.date}
-                                    {t.predictionConfidence && <span className="ml-2 text-emerald-600">({Math.round(t.predictionConfidence * 100)}% conf)</span>}
+                                    {t.predictionConfidence && <span className="ml-2 font-semibold text-emerald-600">({Math.round(t.predictionConfidence * 100)}% conf)</span>}
                                   </p>
                                 </div>
                               </div>
-                              <p className={`text-sm font-bold ${t.type === "Income" ? "text-emerald-600" : "text-slate-800"}`}>
+                              <p className={`text-sm sm:text-base font-bold ${t.type === "Income" ? "text-emerald-600" : "text-slate-800"}`}>
                                 {t.type === "Income" ? "+" : "-"}{formatMoney(t.amount)}
                               </p>
                             </div>
@@ -673,22 +670,22 @@ export default function Home() {
                       <div>
                         <div className="mb-3 flex items-center gap-2">
                           <span className="text-lg text-[#155eef]">✦</span>
-                          <h2 className="text-base font-bold text-slate-900">Active FinPilot Recommendation</h2>
+                          <h2 className="text-base sm:text-lg font-bold text-slate-900">Active FinPilot Recommendation</h2>
                         </div>
-                        <div className="rounded-xl border border-blue-100 bg-white p-4">
-                          <p className="text-[11px] font-bold uppercase tracking-wider text-[#155eef]">Goal Planning</p>
-                          <h3 className="mt-1 text-sm font-bold text-slate-900">{primaryGoal.name} Goal Optimization</h3>
-                          <p className="mt-2 text-xs leading-5 text-slate-600">
+                        <div className="rounded-xl border border-blue-100 bg-white p-4.5">
+                          <p className="text-xs font-bold uppercase tracking-wider text-[#155eef]">Goal Planning</p>
+                          <h3 className="mt-1 text-base font-bold text-slate-900">{primaryGoal.name} Goal Optimization</h3>
+                          <p className="mt-2 text-xs sm:text-sm leading-relaxed text-slate-600">
                             Target: {formatMoney(primaryGoal.targetAmount)} in {primaryGoal.monthsRemaining} months. Safe current surplus: {formatMoney(cashFlow.monthlySurplus)}.
                           </p>
-                          <div className="mt-3 rounded-lg bg-blue-50/60 p-2.5 text-xs text-slate-700">
-                            Adjusting flexible expenses recovers <strong>+৳4,000/mo</strong> capacity.
+                          <div className="mt-3.5 rounded-xl bg-blue-50/80 p-3 text-xs sm:text-sm text-slate-700 font-medium">
+                            Adjusting flexible expenses recovers <strong className="text-[#155eef]">+৳4,000/mo</strong> capacity.
                           </div>
                         </div>
                       </div>
                       <button
                         onClick={() => setActiveNav("Agent")}
-                        className="mt-4 w-full rounded-xl bg-[#155eef] py-2.5 text-xs font-bold text-white hover:bg-blue-700 transition"
+                        className="mt-4 w-full rounded-xl bg-[#155eef] py-3 text-xs sm:text-sm font-bold text-white hover:bg-blue-700 shadow-xs transition"
                       >
                         Open Agent Workspace →
                       </button>
@@ -703,10 +700,10 @@ export default function Home() {
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
                     <div>
                       <h2 className="text-xl font-bold text-slate-900">Transaction Management</h2>
-                      <p className="text-xs text-slate-500">Live records from MongoDB Atlas ({transactions.length} total)</p>
+                      <p className="text-sm text-slate-500">Live records from MongoDB Atlas ({transactions.length} total)</p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <label className="cursor-pointer rounded-xl bg-[#155eef] px-4 py-2 text-xs font-bold text-white hover:bg-blue-700 transition">
+                      <label className="cursor-pointer rounded-xl bg-[#155eef] px-4.5 py-2.5 text-xs sm:text-sm font-bold text-white hover:bg-blue-700 transition shadow-xs">
                         Upload CSV Statement
                         <input type="file" accept=".csv" onChange={handleCsvUpload} className="hidden" />
                       </label>
@@ -714,35 +711,35 @@ export default function Home() {
                   </div>
 
                   {csvStatus && (
-                    <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3.5 text-xs font-semibold text-emerald-800">
+                    <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-800">
                       ✓ {csvStatus}
                     </div>
                   )}
 
                   <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs">
-                    <table className="w-full text-left text-xs">
-                      <thead className="border-b border-slate-200 bg-slate-50 text-slate-500">
+                    <table className="w-full text-left text-sm">
+                      <thead className="border-b border-slate-200 bg-slate-50/75 text-xs font-bold uppercase tracking-wider text-slate-500">
                         <tr>
-                          <th className="px-5 py-3 font-semibold">Description</th>
-                          <th className="px-5 py-3 font-semibold">Category</th>
-                          <th className="px-5 py-3 font-semibold">Date</th>
-                          <th className="px-5 py-3 font-semibold">Type</th>
-                          <th className="px-5 py-3 font-semibold text-right">Amount</th>
+                          <th className="px-5 py-4">Description</th>
+                          <th className="px-5 py-4">Category</th>
+                          <th className="px-5 py-4">Date</th>
+                          <th className="px-5 py-4">Type</th>
+                          <th className="px-5 py-4 text-right">Amount</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
                         {transactions.map((t) => (
-                          <tr key={t.id} className="hover:bg-slate-50/70 transition">
-                            <td className="px-5 py-3.5 font-medium text-slate-800">{t.description}</td>
-                            <td className="px-5 py-3.5">
-                              <span className="inline-flex items-center rounded-lg bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-[#155eef]">
+                          <tr key={t.id} className="hover:bg-slate-50/80 transition-colors">
+                            <td className="px-5 py-4 font-semibold text-slate-800">{t.description}</td>
+                            <td className="px-5 py-4">
+                              <span className="inline-flex items-center rounded-lg bg-blue-50 px-2.5 py-1 text-xs font-bold text-[#155eef]">
                                 {t.category}
                                 {t.predictionConfidence && <span className="ml-1 opacity-75">· {Math.round(t.predictionConfidence * 100)}%</span>}
                               </span>
                             </td>
-                            <td className="px-5 py-3.5 text-slate-500">{t.date}</td>
-                            <td className="px-5 py-3.5 font-semibold text-slate-600">{t.type}</td>
-                            <td className={`px-5 py-3.5 text-right font-bold ${t.type === "Income" ? "text-emerald-600" : "text-slate-800"}`}>
+                            <td className="px-5 py-4 text-slate-500 font-medium">{t.date}</td>
+                            <td className="px-5 py-4 font-semibold text-slate-600">{t.type}</td>
+                            <td className={`px-5 py-4 text-right font-black ${t.type === "Income" ? "text-emerald-600" : "text-slate-800"}`}>
                               {t.type === "Income" ? "+" : "-"}{formatMoney(t.amount)}
                             </td>
                           </tr>
@@ -758,21 +755,21 @@ export default function Home() {
                 <div className="space-y-6">
                   <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
                     <h2 className="text-xl font-bold text-slate-900">Smart Budgeting</h2>
-                    <p className="text-xs text-slate-500">Fixed costs are strictly protected; flexible categories can be tuned by the agent</p>
+                    <p className="text-sm text-slate-500">Fixed costs are strictly protected; flexible categories can be tuned by the agent</p>
                     <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                       {budgets.map((b, idx) => {
                         const pct = Math.min(100, Math.round((b.spent / b.limit) * 100));
                         return (
-                          <div key={b.id || `${b.category}-${idx}`} className="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
+                          <div key={b.id || `${b.category}-${idx}`} className="rounded-2xl border border-slate-200 bg-slate-50/50 p-5 hover:border-blue-200 transition">
                             <div className="flex items-center justify-between">
-                              <span className="text-xs font-bold text-slate-800">{b.category}</span>
-                              <span className={`rounded-md px-2 py-0.5 text-[10px] font-bold ${b.type === "Fixed" ? "bg-slate-200 text-slate-700" : "bg-blue-100 text-[#155eef]"}`}>
+                              <span className="text-sm font-bold text-slate-800">{b.category}</span>
+                              <span className={`rounded-md px-2.5 py-0.5 text-xs font-bold ${b.type === "Fixed" ? "bg-slate-200 text-slate-700" : "bg-blue-100 text-[#155eef]"}`}>
                                 {b.type}
                               </span>
                             </div>
-                            <p className="mt-3 text-lg font-extrabold text-slate-900">{formatMoney(b.spent)}</p>
-                            <p className="text-xs text-slate-400">Limit: {formatMoney(b.limit)} ({pct}%)</p>
-                            <div className="mt-3 h-2 w-full rounded-full bg-slate-200 overflow-hidden">
+                            <p className="mt-3 text-2xl font-black text-slate-900">{formatMoney(b.spent)}</p>
+                            <p className="mt-1 text-xs sm:text-sm font-medium text-slate-500">Limit: {formatMoney(b.limit)} ({pct}%)</p>
+                            <div className="mt-3.5 h-2 w-full rounded-full bg-slate-200 overflow-hidden">
                               <div className={`h-full ${pct > 90 ? "bg-amber-500" : "bg-[#155eef]"}`} style={{ width: `${pct}%` }} />
                             </div>
                           </div>
@@ -788,17 +785,17 @@ export default function Home() {
                 <div className="space-y-6">
                   <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
                     <h2 className="text-xl font-bold text-slate-900">Bills & Subscriptions</h2>
-                    <p className="text-xs text-slate-500">Live bill records from MongoDB database</p>
+                    <p className="text-sm text-slate-500">Live bill records from MongoDB database</p>
                     <div className="mt-6 divide-y divide-slate-100">
                       {bills.map((bill) => (
-                        <div key={bill.id} className="flex items-center justify-between py-3.5">
+                        <div key={bill.id} className="flex items-center justify-between py-4">
                           <div>
-                            <p className="text-sm font-bold text-slate-800">{bill.name}</p>
-                            <p className="text-xs text-slate-400">Due: {bill.dueDate} · {bill.category}</p>
+                            <p className="text-base font-bold text-slate-800">{bill.name}</p>
+                            <p className="text-xs sm:text-sm text-slate-500">Due: {bill.dueDate} · {bill.category}</p>
                           </div>
                           <div className="text-right">
-                            <p className="text-sm font-bold text-slate-900">{formatMoney(bill.amount)}</p>
-                            <span className={`inline-block mt-1 rounded-md px-2 py-0.5 text-[10px] font-bold ${bill.status === "PAID" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
+                            <p className="text-base font-black text-slate-900">{formatMoney(bill.amount)}</p>
+                            <span className={`inline-block mt-1 rounded-md px-2.5 py-1 text-xs font-bold ${bill.status === "PAID" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
                               {bill.status}
                             </span>
                           </div>
@@ -814,23 +811,23 @@ export default function Home() {
                 <div className="space-y-6">
                   <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
                     <h2 className="text-xl font-bold text-slate-900">Financial Goals</h2>
-                    <p className="text-xs text-slate-500">Goal feasibility based on safe conservative monthly income</p>
+                    <p className="text-sm text-slate-500">Goal feasibility based on safe conservative monthly income</p>
                     <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                       {goals.map((g) => {
                         const pct = Math.round((g.currentAmount / g.targetAmount) * 100);
                         const reqMonthly = Math.round((g.targetAmount - g.currentAmount) / g.monthsRemaining);
                         return (
-                          <div key={g.id} className="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
+                          <div key={g.id} className="rounded-2xl border border-slate-200 bg-slate-50/50 p-5 hover:border-blue-200 transition">
                             <div className="flex justify-between items-center">
-                              <h3 className="font-bold text-slate-800">{g.name}</h3>
-                              <span className="rounded-md bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-[#155eef]">{g.priority}</span>
+                              <h3 className="text-base font-bold text-slate-800">{g.name}</h3>
+                              <span className="rounded-md bg-blue-100 px-2.5 py-0.5 text-xs font-bold text-[#155eef]">{g.priority}</span>
                             </div>
-                            <p className="mt-3 text-lg font-extrabold text-slate-900">{formatMoney(g.currentAmount)}</p>
-                            <p className="text-xs text-slate-400">Target: {formatMoney(g.targetAmount)} in {g.monthsRemaining} months</p>
-                            <div className="mt-3 h-2 w-full rounded-full bg-slate-200 overflow-hidden">
+                            <p className="mt-3 text-2xl font-black text-slate-900">{formatMoney(g.currentAmount)}</p>
+                            <p className="mt-1 text-xs sm:text-sm font-medium text-slate-500">Target: {formatMoney(g.targetAmount)} in {g.monthsRemaining} months</p>
+                            <div className="mt-3.5 h-2 w-full rounded-full bg-slate-200 overflow-hidden">
                               <div className="h-full bg-emerald-500" style={{ width: `${pct}%` }} />
                             </div>
-                            <div className="mt-3 text-xs text-slate-500">
+                            <div className="mt-3 text-xs sm:text-sm text-slate-600">
                               Required: <strong>{formatMoney(reqMonthly)}/month</strong>
                             </div>
                           </div>
@@ -849,8 +846,8 @@ export default function Home() {
                       <span className="text-xl text-[#155eef]">✦</span>
                       <h2 className="text-xl font-bold text-slate-900">FinPilot Problem Box</h2>
                     </div>
-                    <p className="text-xs text-slate-500">
-                      Type your financial question in plain language. FinPilot classifies the problem with ML and runs deterministic financial plans.
+                    <p className="text-sm text-slate-500">
+                      Type your financial question in plain language. FinPilot classifies the problem with our self-trained LinearSVC model and generates mathematical financial plans.
                     </p>
 
                     {/* Query Input */}
@@ -860,19 +857,19 @@ export default function Home() {
                         value={problemQuery}
                         onChange={(e) => setProblemQuery(e.target.value)}
                         placeholder="e.g. I want to buy a 100,000 taka laptop in six months..."
-                        className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#155eef]"
+                        className="flex-1 rounded-xl border border-slate-200 bg-white px-4.5 py-3.5 text-sm sm:text-base font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#155eef] placeholder:text-slate-400"
                       />
                       <button
                         onClick={handleAnalyzeProblem}
                         disabled={isClassifying}
-                        className="rounded-xl bg-[#155eef] px-6 py-3 text-xs font-bold text-white shadow-xs hover:bg-blue-700 transition disabled:opacity-50"
+                        className="rounded-xl bg-[#155eef] px-6 py-3.5 text-sm font-bold text-white shadow-xs hover:bg-blue-700 transition disabled:opacity-50"
                       >
                         {isClassifying ? "Classifying..." : "Analyze Problem"}
                       </button>
                     </div>
 
                     {/* Prompt Pills */}
-                    <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                    <div className="mt-3.5 flex flex-wrap gap-2">
                       {[
                         "I need ৳100,000 for a laptop within six months, but my freelance income changes every month. Can I afford it?",
                         "I earn 60,000 taka but cannot save 10,000 every month.",
@@ -881,12 +878,24 @@ export default function Home() {
                         <button
                           key={preset}
                           onClick={() => setProblemQuery(preset)}
-                          className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-medium text-slate-600 hover:border-blue-400 hover:text-[#155eef] transition"
+                          className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-600 hover:border-blue-400 hover:text-[#155eef] hover:shadow-xs transition"
                         >
-                          {preset.slice(0, 50)}...
+                          {preset.slice(0, 56)}...
                         </button>
                       ))}
                     </div>
+
+                    {/* High-Tech Model Inference Loader during Problem Analysis */}
+                    {isClassifying && (
+                      <div className="mt-6 pt-2">
+                        <ModelTrainingLoader
+                          title="Analyzing Problem Intent via LinearSVC"
+                          subtitle="Vectorizing input query tokens with TF-IDF and evaluating hyperplane decision boundaries..."
+                          mode="inference"
+                          modelName="LinearSVC Problem Classifier (In-House ML)"
+                        />
+                      </div>
+                    )}
                   </div>
 
                   {/* Active Plan Card */}
@@ -894,41 +903,41 @@ export default function Home() {
                     <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-5">
                       <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                         <div>
-                          <span className="rounded-md bg-blue-50 px-2.5 py-1 text-xs font-bold text-[#155eef]">
+                          <span className="rounded-md bg-blue-50 px-3 py-1 text-xs font-bold text-[#155eef]">
                             Problem: {activePlan.problemType}
                           </span>
-                          <h3 className="mt-2 text-lg font-bold text-slate-900">{activePlan.summary}</h3>
+                          <h3 className="mt-2 text-xl font-bold text-slate-900">{activePlan.summary}</h3>
                         </div>
-                        <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
+                        <span className="rounded-full bg-emerald-50 px-3.5 py-1 text-xs sm:text-sm font-bold text-emerald-700">
                           Feasible via adjustments
                         </span>
                       </div>
 
-                      <p className="text-xs leading-6 text-slate-600 bg-slate-50 p-4 rounded-xl">
+                      <p className="text-sm leading-relaxed text-slate-700 bg-slate-50 p-4.5 rounded-xl border border-slate-100">
                         {activePlan.explanation}
                       </p>
 
-                      <div className="grid gap-4 sm:grid-cols-3 text-xs">
-                        <div className="rounded-xl border border-slate-200 p-3">
-                          <p className="text-slate-400">Required Saving</p>
-                          <p className="mt-1 text-base font-bold text-slate-900">{formatMoney(activePlan.requiredMonthlySavings)}/mo</p>
+                      <div className="grid gap-4 sm:grid-cols-3">
+                        <div className="rounded-xl border border-slate-200 p-4">
+                          <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Required Saving</p>
+                          <p className="mt-1 text-xl font-black text-slate-900">{formatMoney(activePlan.requiredMonthlySavings)}/mo</p>
                         </div>
-                        <div className="rounded-xl border border-slate-200 p-3">
-                          <p className="text-slate-400">Recovered from Cuts</p>
-                          <p className="mt-1 text-base font-bold text-emerald-600">+{formatMoney(activePlan.totalRecovered)}/mo</p>
+                        <div className="rounded-xl border border-slate-200 p-4">
+                          <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Recovered from Cuts</p>
+                          <p className="mt-1 text-xl font-black text-emerald-600">+{formatMoney(activePlan.totalRecovered)}/mo</p>
                         </div>
-                        <div className="rounded-xl border border-slate-200 p-3">
-                          <p className="text-slate-400">New Safe Capacity</p>
-                          <p className="mt-1 text-base font-bold text-slate-900">{formatMoney(activePlan.newSafeCapacity)}/mo</p>
+                        <div className="rounded-xl border border-slate-200 p-4">
+                          <p className="text-xs font-bold uppercase tracking-wider text-slate-400">New Safe Capacity</p>
+                          <p className="mt-1 text-xl font-black text-slate-900">{formatMoney(activePlan.newSafeCapacity)}/mo</p>
                         </div>
                       </div>
 
                       {/* Proposed Actions */}
                       <div>
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Proposed Actions</h4>
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2.5">Proposed Actions</h4>
                         <div className="space-y-2">
                           {activePlan.proposedActions.map((act, i) => (
-                            <div key={i} className="flex items-center gap-2 text-xs text-slate-700 rounded-lg bg-slate-50 p-2.5">
+                            <div key={i} className="flex items-center gap-2.5 text-sm font-medium text-slate-700 rounded-xl bg-slate-50 p-3 border border-slate-100">
                               <span className="text-[#155eef] font-bold">✓</span>
                               <span>{act.description}</span>
                             </div>
@@ -939,20 +948,20 @@ export default function Home() {
                       {/* Sandbox Approval Buttons */}
                       <div className="pt-2">
                         {planApproved ? (
-                          <div className="rounded-xl bg-emerald-50 p-4 text-center text-xs font-bold text-emerald-700">
+                          <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-4 text-center text-sm font-bold text-emerald-700">
                             ✓ Plan successfully executed in MongoDB database and sandbox accounts!
                           </div>
                         ) : (
                           <div className="flex gap-3">
                             <button
                               onClick={handleApprovePlan}
-                              className="flex-1 rounded-xl bg-[#155eef] py-3 text-xs font-bold text-white shadow-xs hover:bg-blue-700 transition"
+                              className="flex-1 rounded-xl bg-[#155eef] py-3.5 text-sm font-bold text-white shadow-xs hover:bg-blue-700 transition"
                             >
                               Approve and Execute in Sandbox
                             </button>
                             <button
                               onClick={() => setActivePlan(null)}
-                              className="rounded-xl border border-slate-200 px-6 py-3 text-xs font-bold text-slate-600 hover:bg-slate-50 transition"
+                              className="rounded-xl border border-slate-200 px-6 py-3.5 text-sm font-bold text-slate-600 hover:bg-slate-50 transition"
                             >
                               Reject
                             </button>
@@ -969,13 +978,13 @@ export default function Home() {
                 <div className="space-y-6">
                   {/* Sandbox Accounts Snapshot */}
                   <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
-                    <h2 className="text-lg font-bold text-slate-900 mb-4">Sandbox Balances (MongoDB)</h2>
+                    <h2 className="text-xl font-bold text-slate-900 mb-4">Sandbox Balances (MongoDB)</h2>
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                       {sandboxAccounts.map((acc) => (
-                        <div key={acc.id} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                          <p className="text-xs text-slate-500">{acc.name}</p>
-                          <p className="mt-1 text-lg font-extrabold text-slate-900">{formatMoney(acc.balance)}</p>
-                          <span className="mt-2 inline-block rounded-md bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-600">
+                        <div key={acc.id} className="rounded-2xl border border-slate-200 bg-slate-50/50 p-5 hover:border-blue-200 transition">
+                          <p className="text-xs font-bold uppercase tracking-wider text-slate-400">{acc.name}</p>
+                          <p className="mt-2 text-2xl font-black text-slate-900">{formatMoney(acc.balance)}</p>
+                          <span className="mt-2 inline-block rounded-md bg-slate-200 px-2.5 py-0.5 text-xs font-bold text-slate-700">
                             {acc.type}
                           </span>
                         </div>
@@ -986,15 +995,15 @@ export default function Home() {
                   {/* Sandbox Transfers */}
                   {sandboxTxHistory.length > 0 && (
                     <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
-                      <h2 className="text-lg font-bold text-slate-900 mb-4">Sandbox Execution Records</h2>
+                      <h2 className="text-xl font-bold text-slate-900 mb-4">Sandbox Execution Records</h2>
                       <div className="space-y-3">
                         {sandboxTxHistory.map((tx) => (
-                          <div key={tx.id} className="flex items-center justify-between rounded-xl bg-slate-50 p-3 text-xs">
+                          <div key={tx.id} className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm">
                             <div>
                               <p className="font-bold text-slate-800">Transferred {formatMoney(tx.amount)}</p>
-                              <p className="text-[11px] text-slate-400">Ref: {tx.reference} · {tx.createdAt}</p>
+                              <p className="mt-0.5 text-xs text-slate-400">Ref: {tx.reference} · {tx.createdAt}</p>
                             </div>
-                            <span className="rounded-md bg-emerald-100 px-2.5 py-1 font-bold text-emerald-800 text-[10px]">
+                            <span className="rounded-md bg-emerald-100 px-3 py-1 font-bold text-emerald-800 text-xs">
                               {tx.status}
                             </span>
                           </div>
@@ -1005,16 +1014,16 @@ export default function Home() {
 
                   {/* Audit Log Trail */}
                   <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
-                    <h2 className="text-lg font-bold text-slate-900 mb-4">System Audit Trail</h2>
+                    <h2 className="text-xl font-bold text-slate-900 mb-4">System Audit Trail</h2>
                     <div className="space-y-3">
                       {auditLogs.map((log) => (
-                        <div key={log.id} className="flex items-start gap-3 rounded-xl p-3 border border-slate-100 bg-slate-50/50 text-xs">
-                          <span className="rounded-md bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-[#155eef]">
+                        <div key={log.id} className="flex items-start gap-3.5 rounded-xl p-3.5 border border-slate-100 bg-slate-50/50 text-sm">
+                          <span className="rounded-md bg-blue-100 px-2.5 py-1 text-xs font-bold text-[#155eef]">
                             {log.eventType}
                           </span>
                           <div className="flex-1">
                             <p className="font-semibold text-slate-800">{log.description}</p>
-                            <p className="text-[11px] text-slate-400">{log.timestamp}</p>
+                            <p className="mt-0.5 text-xs text-slate-400">{log.timestamp}</p>
                           </div>
                         </div>
                       ))}
@@ -1042,10 +1051,10 @@ function Metric({
   positive?: boolean;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-      <p className="text-xs font-semibold text-slate-500">{label}</p>
-      <p className="mt-2 text-2xl font-extrabold tracking-tight text-slate-900">{value}</p>
-      <p className={`mt-2 text-xs font-medium ${positive ? "text-emerald-600" : "text-slate-400"}`}>{detail}</p>
+    <div className="group rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md">
+      <p className="text-xs font-bold uppercase tracking-wider text-slate-400 group-hover:text-[#155eef] transition-colors">{label}</p>
+      <p className="mt-2 text-2xl sm:text-3xl font-black tracking-tight text-slate-900">{value}</p>
+      <p className={`mt-2 text-xs sm:text-sm font-semibold ${positive ? "text-emerald-600" : "text-slate-500"}`}>{detail}</p>
     </div>
   );
 }

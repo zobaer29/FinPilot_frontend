@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import ModelTrainingLoader from "@/components/ModelTrainingLoader";
 
 interface IncomeFormItem {
   name: string;
@@ -225,12 +226,31 @@ export default function OnboardingPage() {
     }
   };
 
+  if (submitting) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#f5f7fb] px-4 py-12 text-slate-900">
+        <div className="w-full max-w-xl">
+          <ModelTrainingLoader
+            title="Optimizing Personal Financial Profile"
+            subtitle="Running deterministic cash-flow engine, income volatility scoring, and goal feasibility solvers..."
+            mode="training"
+            modelName="FinPilot Financial Intelligence Pipeline"
+          />
+        </div>
+      </main>
+    );
+  }
+
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#f5f7fb]">
-        <div className="text-center">
-          <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-2 border-[#155eef] border-t-transparent" />
-          <p className="text-xs font-semibold text-slate-500">Loading your financial profile...</p>
+      <main className="flex min-h-screen items-center justify-center bg-[#f5f7fb] px-4 py-12 text-slate-900">
+        <div className="w-full max-w-xl">
+          <ModelTrainingLoader
+            title="Synchronizing Financial Ledger"
+            subtitle="Retrieving profile parameters, recurring bills, and ledger balances from MongoDB Atlas..."
+            mode="inference"
+            modelName="Financial State Synchronizer"
+          />
         </div>
       </main>
     );
@@ -257,36 +277,36 @@ export default function OnboardingPage() {
             </p>
           </div>
 
-          <div className="mt-8 rounded-xl border border-slate-200 bg-slate-50 p-5 space-y-3 text-xs">
-            <div className="flex justify-between py-1 border-b border-slate-200">
+          <div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-6 space-y-3.5 text-sm">
+            <div className="flex justify-between py-1.5 border-b border-slate-200">
               <span className="font-semibold text-slate-600">Monthly Income</span>
               <span className="font-bold text-slate-900">৳{cf.totalIncome.toLocaleString()}</span>
             </div>
-            <div className="flex justify-between py-1 border-b border-slate-200">
+            <div className="flex justify-between py-1.5 border-b border-slate-200">
               <span className="font-semibold text-slate-600">Fixed Expenses</span>
               <span className="font-bold text-slate-900">৳{cf.fixedExpenses.toLocaleString()}</span>
             </div>
-            <div className="flex justify-between py-1 border-b border-slate-200">
+            <div className="flex justify-between py-1.5 border-b border-slate-200">
               <span className="font-semibold text-slate-600">Flexible Expenses</span>
               <span className="font-bold text-slate-900">৳{cf.flexibleExpenses.toLocaleString()}</span>
             </div>
-            <div className="flex justify-between py-1 border-b border-slate-200">
+            <div className="flex justify-between py-1.5 border-b border-slate-200">
               <span className="font-semibold text-slate-600">Total Monthly Expenses</span>
               <span className="font-bold text-slate-900">৳{cf.totalExpenses.toLocaleString()}</span>
             </div>
-            <div className="flex justify-between py-1 border-b border-slate-200">
+            <div className="flex justify-between py-1.5 border-b border-slate-200">
               <span className="font-semibold text-slate-600">Monthly Surplus</span>
               <span className="font-bold text-emerald-600">৳{cf.monthlySurplus.toLocaleString()}</span>
             </div>
-            <div className="flex justify-between py-1 border-b border-slate-200">
+            <div className="flex justify-between py-1.5 border-b border-slate-200">
               <span className="font-semibold text-slate-600">Savings Rate</span>
               <span className="font-bold text-slate-900">{cf.savingsRate}%</span>
             </div>
-            <div className="flex justify-between py-1 border-b border-slate-200">
+            <div className="flex justify-between py-1.5 border-b border-slate-200">
               <span className="font-semibold text-slate-600">Financial Health Score</span>
               <span className="font-bold text-[#155eef]">{hs.totalScore} / 100 ({hs.status})</span>
             </div>
-            <div className="flex justify-between py-1">
+            <div className="flex justify-between py-1.5">
               <span className="font-semibold text-slate-600">Income Stability</span>
               <span className="font-bold text-slate-900">
                 {cf.incomeVolatilityScore > 80 ? "LOW VOLATILITY (STABLE)" : "MODERATE VOLATILITY"}
@@ -296,14 +316,14 @@ export default function OnboardingPage() {
 
           {/* Goal Analysis */}
           {goal && (
-            <div className="mt-6 rounded-xl border border-blue-100 bg-blue-50/50 p-5 text-xs">
+            <div className="mt-6 rounded-2xl border border-blue-100 bg-blue-50/60 p-5 text-sm">
               <div className="flex items-center justify-between">
                 <span className="font-bold text-slate-800">Primary Goal: {goal.name} (৳{goal.targetAmount.toLocaleString()})</span>
-                <span className={`rounded-md px-2 py-0.5 font-bold ${goal.status === "ACHIEVABLE" ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>
+                <span className={`rounded-md px-3 py-1 text-xs font-bold ${goal.status === "ACHIEVABLE" ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>
                   {goal.status}
                 </span>
               </div>
-              <p className="mt-2 text-slate-600 leading-5">
+              <p className="mt-2.5 text-slate-600 leading-relaxed text-sm">
                 Required saving: <strong>৳{goal.requiredMonthlySaving.toLocaleString()}/mo</strong>. Current safe capacity: <strong>৳{goal.safeCapacity.toLocaleString()}/mo</strong>.
                 {goal.shortfall > 0 && <span className="ml-1 text-amber-700 font-semibold">Shortfall: ৳{goal.shortfall.toLocaleString()}/mo.</span>}
               </p>
@@ -313,13 +333,13 @@ export default function OnboardingPage() {
           <div className="mt-8 flex items-center justify-between gap-3">
             <button
               onClick={() => setReportData(null)}
-              className="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition shadow-xs"
+              className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 transition shadow-xs"
             >
               ✎ Edit Form Again
             </button>
             <button
               onClick={() => router.push("/dashboard")}
-              className="rounded-xl bg-[#155eef] px-6 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-blue-700 transition"
+              className="rounded-xl bg-[#155eef] px-6 py-3 text-sm font-bold text-white shadow-xs hover:bg-blue-700 transition"
             >
               Go to Dashboard →
             </button>
@@ -361,15 +381,15 @@ export default function OnboardingPage() {
         </div>
 
         {/* Step Navigation Pills (Allows direct jumping to any section to edit/add) */}
-        <div className="mb-6 flex flex-wrap gap-1.5 border-b border-slate-100 pb-4">
+        <div className="mb-6 flex flex-wrap gap-2 border-b border-slate-100 pb-4">
           {STEPS.map((s) => (
             <button
               key={s.id}
               type="button"
               onClick={() => setCurrentStep(s.id)}
-              className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition ${
+              className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs sm:text-sm font-bold transition shadow-xs ${
                 currentStep === s.id
-                  ? "bg-[#155eef] text-white shadow-xs"
+                  ? "bg-[#155eef] text-white"
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200"
               }`}
             >
@@ -380,20 +400,20 @@ export default function OnboardingPage() {
         </div>
 
         {statusMessage && (
-          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-semibold text-red-700">
+          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3.5 text-sm font-semibold text-red-700">
             ⚠ {statusMessage}
           </div>
         )}
 
         {/* Step 1: Overview */}
         {currentStep === 1 && (
-          <div className="space-y-4 text-xs">
+          <div className="space-y-5 text-sm">
             <div>
-              <label className="block font-bold text-slate-700">Preferred Currency</label>
+              <label className="block text-sm font-bold text-slate-700">Preferred Currency</label>
               <select
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value)}
-                className="mt-1.5 w-full rounded-xl border border-slate-200 p-2.5 font-medium"
+                className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#155eef]"
               >
                 <option value="BDT (৳)">BDT (৳) — Bangladeshi Taka</option>
                 <option value="USD ($)">USD ($) — US Dollar</option>
@@ -401,11 +421,11 @@ export default function OnboardingPage() {
               </select>
             </div>
             <div>
-              <label className="block font-bold text-slate-700">Employment Type</label>
+              <label className="block text-sm font-bold text-slate-700">Employment Type</label>
               <select
                 value={employmentType}
                 onChange={(e) => setEmploymentType(e.target.value)}
-                className="mt-1.5 w-full rounded-xl border border-slate-200 p-2.5 font-medium"
+                className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#155eef]"
               >
                 <option value="Job">Salaried Job</option>
                 <option value="Freelancer">Freelancer / Contract</option>
@@ -419,23 +439,23 @@ export default function OnboardingPage() {
 
         {/* Step 2: Income Sources */}
         {currentStep === 2 && (
-          <div className="space-y-4 text-xs">
-            <p className="text-slate-500">Edit existing sources or add new income streams:</p>
+          <div className="space-y-5 text-sm">
+            <p className="text-sm text-slate-500">Edit existing sources or add new income streams:</p>
             {incomes.map((inc, i) => (
-              <div key={i} className="rounded-xl border border-slate-200 bg-slate-50/50 p-3.5 space-y-2">
+              <div key={i} className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold text-slate-500">Source #{i + 1}</span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Source #{i + 1}</span>
                   {incomes.length > 1 && (
                     <button
                       type="button"
                       onClick={() => setIncomes(incomes.filter((_, idx) => idx !== i))}
-                      className="text-[11px] font-bold text-red-500 hover:text-red-700"
+                      className="text-xs font-bold text-red-500 hover:text-red-700"
                     >
                       ✕ Remove
                     </button>
                   )}
                 </div>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <input
                     type="text"
                     value={inc.name}
@@ -445,7 +465,7 @@ export default function OnboardingPage() {
                       setIncomes(next);
                     }}
                     placeholder="Source Name (e.g. Salary, Client)"
-                    className="rounded-lg border border-slate-200 bg-white p-2"
+                    className="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#155eef]"
                   />
                   <input
                     type="number"
@@ -455,12 +475,12 @@ export default function OnboardingPage() {
                       next[i].amount = parseFloat(e.target.value) || 0;
                       setIncomes(next);
                     }}
-                    placeholder="Monthly Amount"
-                    className="rounded-lg border border-slate-200 bg-white p-2"
+                    placeholder="Monthly Amount (৳)"
+                    className="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#155eef]"
                   />
                 </div>
                 <div className="flex items-center gap-4">
-                  <label className="flex items-center gap-1.5">
+                  <label className="flex items-center gap-2 cursor-pointer font-medium text-slate-700">
                     <input
                       type="checkbox"
                       checked={inc.isStable}
@@ -469,13 +489,14 @@ export default function OnboardingPage() {
                         next[i].isStable = e.target.checked;
                         setIncomes(next);
                       }}
+                      className="h-4 w-4 rounded text-[#155eef]"
                     />
-                    <span>Stable income (Predictable)</span>
+                    <span>Stable income (Predictable monthly salary)</span>
                   </label>
                 </div>
                 {!inc.isStable && (
                   <div>
-                    <label className="text-[11px] text-slate-500">Recent monthly history (for volatility analysis):</label>
+                    <label className="text-xs font-semibold text-slate-500">Recent monthly history (comma-separated for ML volatility scoring):</label>
                     <input
                       type="text"
                       value={inc.history}
@@ -485,7 +506,7 @@ export default function OnboardingPage() {
                         setIncomes(next);
                       }}
                       placeholder="e.g. 42000, 55000, 31000, 60000"
-                      className="mt-1 w-full rounded-lg border border-slate-200 bg-white p-2 text-[11px]"
+                      className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#155eef]"
                     />
                   </div>
                 )}
@@ -493,7 +514,7 @@ export default function OnboardingPage() {
             ))}
             <button
               onClick={() => setIncomes([...incomes, { name: "", type: "Salary", amount: 0, frequency: "Monthly", isStable: true, history: "" }])}
-              className="text-xs font-bold text-[#155eef] hover:underline"
+              className="text-sm font-bold text-[#155eef] hover:underline"
             >
               + Add Another Income Source
             </button>
@@ -502,10 +523,10 @@ export default function OnboardingPage() {
 
         {/* Step 3: Fixed Expenses */}
         {currentStep === 3 && (
-          <div className="space-y-4 text-xs">
-            <p className="text-slate-500">Essential expenses that cannot be easily cut:</p>
+          <div className="space-y-5 text-sm">
+            <p className="text-sm text-slate-500">Essential expenses that cannot be easily cut:</p>
             {fixedExpenses.map((exp, i) => (
-              <div key={i} className="flex items-center gap-2">
+              <div key={i} className="flex items-center gap-3">
                 <input
                   type="text"
                   value={exp.name}
@@ -516,7 +537,7 @@ export default function OnboardingPage() {
                     next[i].category = e.target.value;
                     setFixedExpenses(next);
                   }}
-                  className="flex-1 rounded-lg border border-slate-200 p-2"
+                  className="flex-1 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#155eef]"
                 />
                 <input
                   type="number"
@@ -527,13 +548,13 @@ export default function OnboardingPage() {
                     next[i].amount = parseFloat(e.target.value) || 0;
                     setFixedExpenses(next);
                   }}
-                  className="w-32 rounded-lg border border-slate-200 p-2"
+                  className="w-36 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#155eef]"
                 />
                 {fixedExpenses.length > 1 && (
                   <button
                     type="button"
                     onClick={() => setFixedExpenses(fixedExpenses.filter((_, idx) => idx !== i))}
-                    className="px-2 py-1 text-xs font-bold text-red-500 hover:text-red-700"
+                    className="px-2.5 py-1 text-sm font-bold text-red-500 hover:text-red-700"
                   >
                     ✕
                   </button>
@@ -542,7 +563,7 @@ export default function OnboardingPage() {
             ))}
             <button
               onClick={() => setFixedExpenses([...fixedExpenses, { name: "", category: "Housing", amount: 0 }])}
-              className="text-xs font-bold text-[#155eef] hover:underline"
+              className="text-sm font-bold text-[#155eef] hover:underline"
             >
               + Add Fixed Expense
             </button>
@@ -551,23 +572,23 @@ export default function OnboardingPage() {
 
         {/* Step 4: Flexible Expenses */}
         {currentStep === 4 && (
-          <div className="space-y-4 text-xs">
-            <p className="text-slate-500">Expenses that can be adjusted to achieve your goals:</p>
+          <div className="space-y-5 text-sm">
+            <p className="text-sm text-slate-500">Expenses that can be adjusted to achieve your goals:</p>
             {flexibleExpenses.map((exp, i) => (
-              <div key={i} className="rounded-xl border border-slate-200 bg-slate-50/50 p-3 space-y-1.5">
+              <div key={i} className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4 space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold text-slate-500">Item #{i + 1}</span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Item #{i + 1}</span>
                   {flexibleExpenses.length > 1 && (
                     <button
                       type="button"
                       onClick={() => setFlexibleExpenses(flexibleExpenses.filter((_, idx) => idx !== i))}
-                      className="text-[11px] font-bold text-red-500 hover:text-red-700"
+                      className="text-xs font-bold text-red-500 hover:text-red-700"
                     >
                       ✕ Remove
                     </button>
                   )}
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <input
                     type="text"
                     value={exp.name}
@@ -578,7 +599,7 @@ export default function OnboardingPage() {
                       next[i].category = e.target.value;
                       setFlexibleExpenses(next);
                     }}
-                    className="flex-1 rounded-lg border border-slate-200 bg-white p-2"
+                    className="flex-1 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#155eef]"
                   />
                   <input
                     type="number"
@@ -589,11 +610,11 @@ export default function OnboardingPage() {
                       next[i].amount = parseFloat(e.target.value) || 0;
                       setFlexibleExpenses(next);
                     }}
-                    className="w-32 rounded-lg border border-slate-200 bg-white p-2"
+                    className="w-full sm:w-36 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#155eef]"
                   />
                 </div>
-                <div className="text-[11px] text-slate-500 flex items-center gap-2">
-                  <span>Minimum protected limit:</span>
+                <div className="text-xs text-slate-500 flex items-center gap-2">
+                  <span>Minimum protected floor:</span>
                   <input
                     type="number"
                     value={exp.minAllowed || ""}
@@ -603,14 +624,14 @@ export default function OnboardingPage() {
                       next[i].minAllowed = parseFloat(e.target.value) || 0;
                       setFlexibleExpenses(next);
                     }}
-                    className="w-24 rounded border border-slate-200 bg-white p-1 text-[11px]"
+                    className="w-28 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium"
                   />
                 </div>
               </div>
             ))}
             <button
               onClick={() => setFlexibleExpenses([...flexibleExpenses, { name: "", category: "Flexible", amount: 0, minAllowed: 0 }])}
-              className="text-xs font-bold text-[#155eef] hover:underline"
+              className="text-sm font-bold text-[#155eef] hover:underline"
             >
               + Add Flexible Expense
             </button>
@@ -619,57 +640,58 @@ export default function OnboardingPage() {
 
         {/* Step 5: Savings & Debt */}
         {currentStep === 5 && (
-          <div className="space-y-4 text-xs">
-            <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-5 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block font-bold text-slate-700">Current Total Savings (৳)</label>
+                <label className="block text-sm font-bold text-slate-700">Current Total Savings (৳)</label>
                 <input
                   type="number"
                   value={currentSavings || ""}
                   placeholder="0"
                   onChange={(e) => setCurrentSavings(parseFloat(e.target.value) || 0)}
-                  className="mt-1 w-full rounded-lg border border-slate-200 p-2"
+                  className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#155eef]"
                 />
               </div>
               <div>
-                <label className="block font-bold text-slate-700">Emergency Fund (৳)</label>
+                <label className="block text-sm font-bold text-slate-700">Emergency Fund (৳)</label>
                 <input
                   type="number"
                   value={emergencyFund || ""}
                   placeholder="0"
                   onChange={(e) => setEmergencyFund(parseFloat(e.target.value) || 0)}
-                  className="mt-1 w-full rounded-lg border border-slate-200 p-2"
+                  className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#155eef]"
                 />
               </div>
             </div>
 
             <div className="pt-2">
-              <label className="flex items-center gap-2 font-bold text-slate-700">
+              <label className="flex items-center gap-2 font-bold text-slate-700 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={hasNoDebt}
                   onChange={(e) => setHasNoDebt(e.target.checked)}
+                  className="h-4 w-4 rounded text-[#155eef]"
                 />
-                <span>I currently have no debt</span>
+                <span>I currently have zero debt obligations</span>
               </label>
             </div>
 
             {!hasNoDebt && (
-              <div className="space-y-3 pt-2">
-                <p className="text-slate-500 font-semibold">Active Loans & Debt Obligations:</p>
+              <div className="space-y-4 pt-2">
+                <p className="text-sm text-slate-500 font-semibold">Active Loans & Debt Obligations:</p>
                 {debts.map((d, i) => (
-                  <div key={i} className="rounded-xl border border-slate-200 bg-slate-50/50 p-3 space-y-2">
+                  <div key={i} className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4 space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold text-slate-500">Debt #{i + 1}</span>
+                      <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Debt #{i + 1}</span>
                       <button
                         type="button"
                         onClick={() => setDebts(debts.filter((_, idx) => idx !== i))}
-                        className="text-[11px] font-bold text-red-500 hover:text-red-700"
+                        className="text-xs font-bold text-red-500 hover:text-red-700"
                       >
                         ✕ Remove
                       </button>
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <input
                         type="text"
                         value={d.name}
@@ -679,7 +701,7 @@ export default function OnboardingPage() {
                           setDebts(next);
                         }}
                         placeholder="Debt Name (e.g. Student Loan, Credit Card)"
-                        className="rounded-lg border border-slate-200 bg-white p-2"
+                        className="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#155eef]"
                       />
                       <input
                         type="number"
@@ -690,10 +712,10 @@ export default function OnboardingPage() {
                           setDebts(next);
                         }}
                         placeholder="Outstanding Balance (৳)"
-                        className="rounded-lg border border-slate-200 bg-white p-2"
+                        className="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#155eef]"
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <input
                         type="number"
                         value={d.monthlyPayment || ""}
@@ -703,7 +725,7 @@ export default function OnboardingPage() {
                           setDebts(next);
                         }}
                         placeholder="Monthly Payment (৳)"
-                        className="rounded-lg border border-slate-200 bg-white p-2"
+                        className="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#155eef]"
                       />
                       <input
                         type="number"
@@ -714,7 +736,7 @@ export default function OnboardingPage() {
                           setDebts(next);
                         }}
                         placeholder="Interest Rate (%)"
-                        className="rounded-lg border border-slate-200 bg-white p-2"
+                        className="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#155eef]"
                       />
                     </div>
                   </div>
@@ -722,7 +744,7 @@ export default function OnboardingPage() {
                 <button
                   type="button"
                   onClick={() => setDebts([...debts, { name: "", outstandingAmount: 0, monthlyPayment: 0, interestRate: 0 }])}
-                  className="text-xs font-bold text-[#155eef] hover:underline"
+                  className="text-sm font-bold text-[#155eef] hover:underline"
                 >
                   + Add Debt Obligation
                 </button>
@@ -733,11 +755,11 @@ export default function OnboardingPage() {
 
         {/* Step 6: Bills */}
         {currentStep === 6 && (
-          <div className="space-y-4 text-xs">
-            <p className="text-slate-500">Recurring utility and subscription bills:</p>
-            {bills.length === 0 && <p className="text-slate-400 italic">No recurring bills added yet.</p>}
+          <div className="space-y-5 text-sm">
+            <p className="text-sm text-slate-500">Recurring utility and subscription bills:</p>
+            {bills.length === 0 && <p className="text-sm text-slate-400 italic">No recurring bills added yet.</p>}
             {bills.map((bill, i) => (
-              <div key={i} className="flex items-center gap-2">
+              <div key={i} className="flex items-center gap-3">
                 <input
                   type="text"
                   value={bill.name}
@@ -747,23 +769,23 @@ export default function OnboardingPage() {
                     next[i].name = e.target.value;
                     setBills(next);
                   }}
-                  className="flex-1 rounded-lg border border-slate-200 p-2"
+                  className="flex-1 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#155eef]"
                 />
                 <input
                   type="number"
                   value={bill.amount || ""}
-                  placeholder="Amount"
+                  placeholder="Amount (৳)"
                   onChange={(e) => {
                     const next = [...bills];
                     next[i].amount = parseFloat(e.target.value) || 0;
                     setBills(next);
                   }}
-                  className="w-28 rounded-lg border border-slate-200 p-2"
+                  className="w-36 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#155eef]"
                 />
                 <button
                   type="button"
                   onClick={() => setBills(bills.filter((_, idx) => idx !== i))}
-                  className="px-2 py-1 text-xs font-bold text-red-500 hover:text-red-700"
+                  className="px-2.5 py-1 text-sm font-bold text-red-500 hover:text-red-700"
                 >
                   ✕
                 </button>
@@ -772,7 +794,7 @@ export default function OnboardingPage() {
             <div>
               <button
                 onClick={() => setBills([...bills, { name: "", amount: 0, dueDate: "2026-10-25", category: "Utilities", isRecurring: true }])}
-                className="text-xs font-bold text-[#155eef] hover:underline"
+                className="text-sm font-bold text-[#155eef] hover:underline"
               >
                 + Add Recurring Bill
               </button>
@@ -782,23 +804,23 @@ export default function OnboardingPage() {
 
         {/* Step 7: Goals */}
         {currentStep === 7 && (
-          <div className="space-y-4 text-xs">
-            <p className="text-slate-500">What major purchase or fund are you saving for?</p>
+          <div className="space-y-5 text-sm">
+            <p className="text-sm text-slate-500">What major purchase or target fund are you planning for?</p>
             {goals.map((g, i) => (
-              <div key={i} className="rounded-xl border border-slate-200 bg-slate-50/50 p-3.5 space-y-2">
+              <div key={i} className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold text-slate-500">Goal #{i + 1}</span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Goal #{i + 1}</span>
                   {goals.length > 1 && (
                     <button
                       type="button"
                       onClick={() => setGoals(goals.filter((_, idx) => idx !== i))}
-                      className="text-[11px] font-bold text-red-500 hover:text-red-700"
+                      className="text-xs font-bold text-red-500 hover:text-red-700"
                     >
                       ✕ Remove
                     </button>
                   )}
                 </div>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <input
                     type="text"
                     value={g.name}
@@ -808,7 +830,7 @@ export default function OnboardingPage() {
                       setGoals(next);
                     }}
                     placeholder="Goal Name (e.g. Laptop)"
-                    className="rounded-lg border border-slate-200 bg-white p-2"
+                    className="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#155eef]"
                   />
                   <input
                     type="number"
@@ -819,7 +841,7 @@ export default function OnboardingPage() {
                       setGoals(next);
                     }}
                     placeholder="Target Amount (৳)"
-                    className="rounded-lg border border-slate-200 bg-white p-2"
+                    className="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#155eef]"
                   />
                 </div>
               </div>
@@ -827,7 +849,7 @@ export default function OnboardingPage() {
             <div>
               <button
                 onClick={() => setGoals([...goals, { name: "", targetAmount: 0, currentAmount: 0, deadline: "", priority: "HIGH" }])}
-                className="text-xs font-bold text-[#155eef] hover:underline"
+                className="text-sm font-bold text-[#155eef] hover:underline"
               >
                 + Add Another Goal
               </button>
@@ -836,11 +858,11 @@ export default function OnboardingPage() {
         )}
 
         {/* Navigation Buttons */}
-        <div className="mt-8 flex justify-between border-t border-slate-100 pt-4">
+        <div className="mt-8 flex justify-between border-t border-slate-100 pt-5">
           {currentStep > 1 ? (
             <button
               onClick={handlePrev}
-              className="rounded-xl border border-slate-200 px-5 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50"
+              className="rounded-xl border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 transition shadow-xs"
             >
               ← Previous
             </button>
@@ -849,7 +871,7 @@ export default function OnboardingPage() {
           {currentStep < 7 ? (
             <button
               onClick={handleNext}
-              className="rounded-xl bg-[#155eef] px-6 py-2.5 text-xs font-bold text-white hover:bg-blue-700 shadow-xs"
+              className="rounded-xl bg-[#155eef] px-7 py-3 text-sm font-bold text-white hover:bg-blue-700 transition shadow-xs"
             >
               Continue →
             </button>
@@ -857,7 +879,7 @@ export default function OnboardingPage() {
             <button
               onClick={handleAnalyzeFinances}
               disabled={submitting}
-              className="rounded-xl bg-emerald-600 px-6 py-2.5 text-xs font-bold text-white hover:bg-emerald-700 shadow-xs disabled:opacity-50"
+              className="rounded-xl bg-emerald-600 px-7 py-3 text-sm font-bold text-white hover:bg-emerald-700 transition shadow-xs disabled:opacity-50"
             >
               {submitting
                 ? "Saving & Calculating..."
