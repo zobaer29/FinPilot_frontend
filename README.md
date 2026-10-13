@@ -37,11 +37,7 @@ npm install
 
 Configure `DATABASE_URL` and `NEXT_PUBLIC_ML_SERVICE_URL` in `.env`:
 
-```env
-DATABASE_URL="mongodb://127.0.0.1:27017/finpilot"
-AUTH_SECRET="your-secure-random-secret"
-NEXT_PUBLIC_ML_SERVICE_URL="http://127.0.0.1:8000"
-```
+
 
 ### 2. Generate Prisma Client
 
