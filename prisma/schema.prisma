@@ -1,0 +1,163 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String               @id @default(auto()) @map("_id") @db.ObjectId
+  email               String               @unique
+  name                String?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  incomes             IncomeSource[]
+  transactions        Transaction[]
+  budgets             Budget[]
+  bills               Bill[]
+  goals               FinancialGoal[]
+  debts               Debt[]
+  sandboxAccounts     SandboxAccount[]
+  sandboxTransactions SandboxTransaction[]
+  recommendations     Recommendation[]
+  actions             AgentAction[]
+  auditLogs           AuditLog[]
+}
+
+model IncomeSource {
+  id        String          @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String          @db.ObjectId
+  user      User            @relation(fields: [userId], references: [id])
+  name      String
+  amount    Float
+  type      String
+  frequency String
+  isStable  Boolean         @default(true)
+  isActive  Boolean         @default(true)
+  history   IncomeHistory[]
+}
+
+model IncomeHistory {
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+  incomeSourceId String       @db.ObjectId
+  incomeSource   IncomeSource @relation(fields: [incomeSourceId], references: [id])
+  amount         Float
+  date           DateTime     @default(now())
+}
+
+model Transaction {
+  id                   String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId               String   @db.ObjectId
+  user                 User     @relation(fields: [userId], references: [id])
+  description          String
+  amount               Float
+  type                 String
+  category             String
+  predictedCategory    String?
+  predictionConfidence Float?
+  date                 DateTime
+  source               String   @default("manual")
+}
+
+model Budget {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  userId   String @db.ObjectId
+  user     User   @relation(fields: [userId], references: [id])
+  category String
+  limit    Float
+  month    Int
+  year     Int
+}
+
+model Bill {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id])
+  name        String
+  amount      Float
+  category    String
+  dueDate     DateTime
+  isRecurring Boolean  @default(false)
+  frequency   String?
+  status      String   @default("UPCOMING")
+}
+
+model FinancialGoal {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String   @db.ObjectId
+  user          User     @relation(fields: [userId], references: [id])
+  name          String
+  targetAmount  Float
+  currentAmount Float    @default(0)
+  deadline      DateTime
+  priority      String   @default("MEDIUM")
+  status        String   @default("ACTIVE")
+}
+
+model Debt {
+  id                String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String    @db.ObjectId
+  user              User      @relation(fields: [userId], references: [id])
+  name              String
+  outstandingAmount Float
+  monthlyPayment    Float
+  interestRate      Float?
+  dueDate           DateTime?
+}
+
+model SandboxAccount {
+  id      String @id @default(auto()) @map("_id") @db.ObjectId
+  userId  String @db.ObjectId
+  user    User   @relation(fields: [userId], references: [id])
+  name    String
+  balance Float
+  type    String
+}
+
+model SandboxTransaction {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String   @db.ObjectId
+  user          User     @relation(fields: [userId], references: [id])
+  fromAccountId String?  @db.ObjectId
+  toAccountId   String?  @db.ObjectId
+  amount        Float
+  status        String   @default("COMPLETED")
+  reference     String
+  createdAt     DateTime @default(now())
+}
+
+model Recommendation {
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String        @db.ObjectId
+  user        User          @relation(fields: [userId], references: [id])
+  problemType String
+  summary     String
+  status      String        @default("PENDING")
+  createdAt   DateTime      @default(now())
+  actions     AgentAction[]
+}
+
+model AgentAction {
+  id               String         @id @default(auto()) @map("_id") @db.ObjectId
+  userId           String         @db.ObjectId
+  user             User           @relation(fields: [userId], references: [id])
+  recommendationId String         @db.ObjectId
+  recommendation   Recommendation @relation(fields: [recommendationId], references: [id])
+  actionType       String
+  payload          Json
+  requiresApproval Boolean        @default(true)
+  approvalStatus   String         @default("PENDING")
+  executedAt       DateTime?
+}
+
+model AuditLog {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id])
+  eventType   String
+  description String
+  metadata    Json?
+  createdAt   DateTime @default(now())
+}
